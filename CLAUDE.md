@@ -7,9 +7,7 @@ served via GitHub Pages.
 
 - Root `index.html` is a redirect stub: it sends visitors to `howar31.com`
   (client-side — `location.replace` plus a `<meta refresh>` no-JS fallback).
-  It is not a landing page and reveals nothing about the items. The same stub
-  is also the root of the `howar31/howar31.github.io` repo
-  (`lab.howar31.com/`); keep the two byte-identical.
+  It is not a landing page and reveals nothing about the items.
 - One directory per shared item; the item's entry file is `index.html` inside
   it, so the item is reached at `/<item>/` — no `.html`, no `index.html` in the
   path.
