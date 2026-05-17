@@ -5,9 +5,12 @@ served via GitHub Pages.
 
 ## Layout
 
-- Root `index.html` is a fixed, non-informational ambient placeholder. Do not
-  turn it into an index or link it to the items — the site root must reveal
-  nothing.
+- Root `index.html` is an ambient identity page (aurora-drift animation +
+  centered `@howar31` linking to GitHub). It must still reveal nothing about
+  the items: do not turn it into an index or link it to them.
+- Root `index.html` is byte-identical to `index.html` in the
+  `howar31/howar31.github.io` repo (served at `lab.howar31.com/`). Any change
+  to one MUST be applied to the other; verify with `diff`.
 - One directory per shared item; the item's entry file is `index.html` inside
   it, so the item is reached at `/<item>/` — no `.html`, no `index.html` in the
   path.
