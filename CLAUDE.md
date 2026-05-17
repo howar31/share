@@ -1,16 +1,16 @@
 # share
 
 Ad-hoc public hosting for occasional static files (HTML reports, demos, etc.),
-served via GitHub Pages under https://REDACTED/share/.
+served via GitHub Pages.
 
 ## Layout
 
 - Root `index.html` is a fixed, non-informational ambient placeholder. Do not
-  turn it into an index or link it to the items — `REDACTED/share/` must
-  reveal nothing.
-- One directory per shared item; the item's entry file is `index.html` inside it.
-  The URL becomes `https://REDACTED/share/<item>/` — no `.html`, no
-  `index.html` in the path.
+  turn it into an index or link it to the items — the site root must reveal
+  nothing.
+- One directory per shared item; the item's entry file is `index.html` inside
+  it, so the item is reached at `/<item>/` — no `.html`, no `index.html` in the
+  path.
 - No master index is maintained anywhere (no list in `README.md`, no links
   between items). Each item is standalone and appears unrelated to the others.
   This is deliberate — it avoids index maintenance and gives slight obscurity.
@@ -18,14 +18,8 @@ served via GitHub Pages under https://REDACTED/share/.
   a real need appears (avoid premature abstraction).
 - Each item must be self-contained. Single-file HTML (inlined CSS/JS) is preferred;
   if an item needs assets, keep them inside that item's own directory.
-
-## Custom domain
-
-- This repo is served at https://REDACTED/share/ — a sub-path of the
-  account's GitHub Pages custom domain.
-- The custom domain `REDACTED` is owned by the `REDACTED`
-  user-site repository, not this one. Do NOT add a `CNAME` file here — a project
-  repo automatically inherits the account custom domain as `/<repo>/`.
+- Do not add a `CNAME` file to this repo — Pages custom-domain routing is
+  configured at the account level, not per-repo.
 
 ## Privacy
 
@@ -39,5 +33,5 @@ served via GitHub Pages under https://REDACTED/share/.
 
 1. Create `<item>/index.html` (plus any assets in the same directory).
 2. Commit and push to `main`; GitHub Pages redeploys automatically.
-3. Share the `https://REDACTED/share/<item>/` URL directly with whoever
-   needs it. Nothing links to it, so it is only reachable by that URL.
+3. Share the item's `/<item>/` URL directly with whoever needs it. Nothing links
+   to it, so it is only reachable by that URL.
