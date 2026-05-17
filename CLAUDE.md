@@ -5,9 +5,9 @@ served via GitHub Pages under https://REDACTED/share/.
 
 ## Layout
 
-- Root `index.html` is a fixed, intentionally blank placeholder. Do not turn it
-  into an index or link it to the items — `REDACTED/share/` must reveal
-  nothing.
+- Root `index.html` is a fixed, non-informational ambient placeholder. Do not
+  turn it into an index or link it to the items — `REDACTED/share/` must
+  reveal nothing.
 - One directory per shared item; the item's entry file is `index.html` inside it.
   The URL becomes `https://REDACTED/share/<item>/` — no `.html`, no
   `index.html` in the path.
