@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X (Twitter) For You 推薦演算法 — 技術解析報告</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2027;
+    --panel-2: #232b35;
+    --border: #2f3a47;
+    --text: #e7e9ea;
+    --muted: #8b98a5;
+    --accent: #1d9bf0;
+    --accent-2: #ffd400;
+    --green: #00ba7c;
+    --red: #f4212e;
+    --code-bg: #11161c;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+      "Microsoft JhengHei", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: var(--mono);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.86em;
+    color: #c5d3df;
+  }
+  .layout { display: flex; max-width: 1500px; margin: 0 auto; }
+  /* Sidebar */
+  nav {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    width: 260px;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 18px;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  nav .brand { font-weight: 800; font-size: 1.05rem; margin-bottom: 4px; }
+  nav .brand span { color: var(--accent); }
+  nav .sub { color: var(--muted); font-size: 0.78rem; margin-bottom: 22px; }
+  nav a {
+    display: block;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+  }
+  nav a:hover { background: var(--panel); color: var(--text); text-decoration: none; }
+  nav a.group { margin-top: 14px; color: var(--text); font-weight: 700; font-size: 0.82rem;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+  nav a.indent { padding-left: 22px; }
+  /* Main */
+  main { flex: 1; padding: 48px 56px; min-width: 0; }
+  header.hero {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #1a2733, #14181d);
+    border-radius: 16px;
+    padding: 40px 44px;
+    margin-bottom: 40px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 2rem; line-height: 1.3; }
+  header.hero .lede { color: var(--muted); font-size: 1.02rem; margin: 0; }
+  header.hero .meta {
+    margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .pill {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .pill b { color: var(--text); }
+  h2 {
+    font-size: 1.5rem;
+    margin: 52px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    scroll-margin-top: 20px;
+  }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #f7f9f9; scroll-margin-top: 20px; }
+  h4 { font-size: 1rem; margin: 22px 0 8px; color: var(--accent-2); }
+  p { margin: 12px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 18px 0;
+  }
+  .card.accent { border-left: 4px solid var(--accent); }
+  .card.warn { border-left: 4px solid var(--accent-2); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .grid .card { margin: 0; }
+  .grid .card h4 { margin-top: 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--panel-2); color: var(--text); font-weight: 700; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  td code { white-space: nowrap; }
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tag.rust { background: #3b2a1f; color: #dea584; border: 1px solid #6b4a30; }
+  .tag.py { background: #1f2e3b; color: #6fc3 df; border: 1px solid #305a6b; }
+  .tag.py { background: #1f2e3b; color: #6fc3df; border: 1px solid #305a6b; }
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .flow .stage {
+    width: 100%;
+    max-width: 720px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+  }
+  .flow .stage .t { font-weight: 700; }
+  .flow .stage .d { color: var(--muted); font-size: 0.84rem; }
+  .flow .stage.src { border-color: #6b4a30; }
+  .flow .stage.score { border-color: var(--accent); }
+  .flow .arrow { color: var(--muted); font-size: 1.2rem; padding: 5px 0; }
+  .flow .split { display: flex; gap: 14px; width: 100%; max-width: 720px; }
+  .flow .split .stage { max-width: none; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: #c5d3df;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; }
+  .formula {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    margin: 14px 0;
+  }
+  .muted { color: var(--muted); }
+  .footnote {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 4px 16px; font-size: 0.9rem; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  @media (max-width: 980px) {
+    nav { display: none; }
+    main { padding: 28px 20px; }
+    header.hero { padding: 28px 24px; }
+  }
+  @media print {
+    nav { display: none; }
+    .layout { display: block; }
+    main { padding: 0 6px; }
+    header.hero { padding: 22px; }
+    h2 { margin-top: 30px; }
+    .card, table, pre, .flow .stage, .formula, .grid { break-inside: avoid; }
+    h2, h3, h4 { break-after: avoid; }
+    a { color: var(--accent); }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav>
+  <div class="brand"><span>𝕏</span> For You 演算法</div>
+  <div class="sub">原始碼技術解析報告</div>
+  <a href="#overview" class="group">總覽</a>
+  <a href="#intro">專案簡介</a>
+  <a href="#arch">系統架構</a>
+  <a href="#flow">請求生命週期</a>
+  <a href="#subsystems" class="group">五大子系統</a>
+  <a href="#home-mixer" class="indent">Home Mixer</a>
+  <a href="#candidate-pipeline" class="indent">Candidate Pipeline</a>
+  <a href="#thunder" class="indent">Thunder</a>
+  <a href="#phoenix" class="indent">Phoenix</a>
+  <a href="#grox" class="indent">Grox</a>
+  <a href="#deep" class="group">關鍵機制</a>
+  <a href="#scoring">評分與排序</a>
+  <a href="#filtering">過濾機制</a>
+  <a href="#design">核心設計決策</a>
+  <a href="#takeaway" class="group">結語</a>
+  <a href="#summary">重點整理</a>
+</nav>
+
+<main>
+
+<header class="hero">
+  <h1>X (Twitter) "For You" 推薦演算法<br>原始碼技術解析報告</h1>
+  <p class="lede">針對 xAI 於 2026 年 5 月公開的 <code>xai-org/x-algorithm</code> 程式庫,五個平行 agent 深入探勘五大子系統後彙整的完整技術解析。</p>
+  <div class="meta">
+    <span class="pill">來源 <b>github.com/xai-org/x-algorithm</b></span>
+    <span class="pill">授權 <b>Apache 2.0</b></span>
+    <span class="pill">更新 <b>2026-05-15 release</b></span>
+    <span class="pill">語言 <b>Rust + Python (JAX)</b></span>
+    <span class="pill">報告產出 <b>2026-05-14</b></span>
+  </div>
+</header>
+
+<!-- ============ OVERVIEW ============ -->
+<h2 id="overview">總覽</h2>
+
+<h3 id="intro">專案簡介</h3>
+<p>這個程式庫是 X(原 Twitter)<strong>「For You」資訊流</strong>背後的核心推薦系統。它的工作是:從你追蹤的帳號(<em>in-network</em>)與全站貼文語料庫(<em>out-of-network</em>)中,檢索、排序、過濾貼文,最終產生你看到的那串時間軸。</p>
+
+<div class="card accent">
+<p style="margin-top:0"><strong>這次釋出最重要的一句話 —— 演算法的哲學轉向:</strong></p>
+<blockquote style="border-left:3px solid var(--accent-2);margin:8px 0;padding-left:14px;color:var(--text)">
+「我們已經消除了系統中<strong>每一個手工設計的特徵(hand-engineered feature)</strong>與大部分的啟發式規則(heuristics)。由一個基於 Grok 的 transformer 模型扛起所有重活 —— 透過理解你的互動歷史(按讚、回覆、分享…)來判斷什麼內容跟你相關。」
+</blockquote>
+<p style="margin-bottom:0">換句話說:過去的推薦系統靠數百個人工特徵(發文者粉絲數、貼文新鮮度、互動率…)。新系統把這些幾乎全丟掉,改由一個 transformer 直接「閱讀」你的行為序列來決定相關性。這大幅降低了資料管線與服務基礎設施的複雜度。</p>
+</div>
+
+<h3>整體流程一句話總結</h3>
+<div class="flow">
+  <div class="stage"><div class="t">使用者打開 App,送出 For You 請求</div></div>
+  <div class="arrow">▼</div>
+  <div class="split">
+    <div class="stage src"><div class="t">Thunder</div><div class="d">追蹤帳號的貼文<br>(in-network)</div></div>
+    <div class="stage src"><div class="t">Phoenix Retrieval</div><div class="d">全站 ML 檢索<br>(out-of-network)</div></div>
+  </div>
+  <div class="arrow">▼ 合併候選</div>
+  <div class="stage"><div class="t">Hydration 補資料 → Filtering 過濾</div><div class="d">補上貼文內文、作者資訊、媒體;濾掉重複、過舊、封鎖、靜音的內容</div></div>
+  <div class="arrow">▼</div>
+  <div class="stage score"><div class="t">Phoenix Scorer:Grok transformer 預測互動機率</div><div class="d">對每則貼文預測 P(讚)、P(回覆)、P(轉發)、P(檢舉)… 共 19 種行為</div></div>
+  <div class="arrow">▼</div>
+  <div class="stage score"><div class="t">Weighted Scorer:加權合成最終分數</div><div class="d">正向行為加分、負向行為扣分;再做作者多樣性衰減</div></div>
+  <div class="arrow">▼</div>
+  <div class="stage"><div class="t">Selection 選 Top-K → 後置過濾 → 混入廣告 / 推薦追蹤</div></div>
+  <div class="arrow">▼</div>
+  <div class="stage"><div class="t">回傳排序好的資訊流</div></div>
+</div>
+
+<h3 id="arch">系統架構:五大子系統</h3>
+<p>整個程式庫由五個各自獨立的子系統組成,分屬兩種語言 —— <strong>線上服務層用 Rust</strong>(追求低延遲),<strong>機器學習層用 Python / JAX</strong>。</p>
+
+<div class="grid">
+  <div class="card">
+    <h4>Home Mixer <span class="tag rust">Rust</span></h4>
+    <p class="muted" style="font-size:0.88rem">編排層。組裝整個 For You 資訊流,串接所有階段,對外提供 gRPC 端點。</p>
+  </div>
+  <div class="card">
+    <h4>Candidate Pipeline <span class="tag rust">Rust</span></h4>
+    <p class="muted" style="font-size:0.88rem">可重用框架。定義 Source / Hydrator / Filter / Scorer / Selector 等 trait,是 Home Mixer 的骨架。</p>
+  </div>
+  <div class="card">
+    <h4>Thunder <span class="tag rust">Rust</span></h4>
+    <p class="muted" style="font-size:0.88rem">記憶體內貼文倉儲。即時消化 Kafka 事件,提供「追蹤帳號貼文」的次毫秒查詢。</p>
+  </div>
+  <div class="card">
+    <h4>Phoenix <span class="tag py">Python · JAX</span></h4>
+    <p class="muted" style="font-size:0.88rem">ML 核心。兩塔檢索模型 + 基於 Grok 的排序 transformer,預測互動機率。</p>
+  </div>
+  <div class="card">
+    <h4>Grox <span class="tag py">Python</span></h4>
+    <p class="muted" style="font-size:0.88rem">內容理解服務。用 LLM 對貼文做垃圾偵測、安全政策分類、品質評分與向量嵌入。</p>
+  </div>
+</div>
+
+<h3 id="flow">一次請求的完整生命週期</h3>
+<p>Home Mixer 採用<strong>兩層堆疊管線</strong>。外層 <code>ForYouCandidatePipeline</code> 負責「資訊流組裝」(貼文 + 廣告 + 推薦追蹤);內層 <code>PhoenixCandidatePipeline</code> 負責「貼文檢索與排序」這件重活。內層之所以獨立,是因為它對外暴露成 <code>ScoredPostsService</code> gRPC 端點,可被其他服務單獨呼叫。</p>
+
+<table>
+<thead><tr><th>階段</th><th>內層 PhoenixCandidatePipeline 做的事</th></tr></thead>
+<tbody>
+<tr><td><b>Query Hydrators</b><br>(15 個)</td><td>抓取使用者情境:互動行為序列、追蹤名單、封鎖/靜音名單、訂閱、人口統計、追蹤的主題與 Starter Pack、曝光 bloom filter、IP 地理位置等。</td></tr>
+<tr><td><b>Sources</b><br>(6 個,平行)</td><td>從 Thunder(站內)、TweetMixer、Phoenix 檢索、Phoenix 主題、Phoenix MoE 取候選;若 Redis 有快取則走 CachedPostsSource 捷徑。</td></tr>
+<tr><td><b>Hydrators</b><br>(10 個,平行)</td><td>補上核心貼文資料、引用貼文、影片長度、媒體旗標、訂閱、作者資訊、語言碼、主題等。</td></tr>
+<tr><td><b>Filters</b><br>(14 個,循序)</td><td>濾掉重複、過舊、自己的貼文、轉推去重、訂閱牆、已看過、已服務、靜音關鍵字、社交圖封鎖等。</td></tr>
+<tr><td><b>Scorers</b><br>(3 個,循序)</td><td><code>PhoenixScorer</code>(ML 預測)→ <code>RankingScorer</code>(加權合成 + 多樣性)→ <code>VMRanker</code>(可選的價值模型重排)。</td></tr>
+<tr><td><b>Selector</b></td><td><code>TopKScoreSelector</code> 依分數選出 Top-K。</td></tr>
+<tr><td><b>後置 Hydrators + Filters</b></td><td>可見度過濾(刪文/垃圾/暴力/血腥)、品牌安全、對話去重。</td></tr>
+<tr><td><b>Side Effects</b><br>(平行,非阻塞)</td><td>寫 Redis 候選快取、發 Kafka 重排日誌、記錄已服務歷史等。</td></tr>
+</tbody>
+</table>
+<p>外層管線拿到排序好的貼文後,透過 <code>BlenderSelector</code> 把廣告、「推薦追蹤」模組、提示卡片混入適當位置,最後序列化成 URT thrift 格式回傳給客戶端。</p>
+
+<!-- ============ SUBSYSTEMS ============ -->
+<h2 id="subsystems">五大子系統詳解</h2>
+
+<!-- HOME MIXER -->
+<h3 id="home-mixer">1. Home Mixer <span class="tag rust">Rust</span> — 編排層</h3>
+<p><strong>角色:</strong>整個 For You 資訊流的總指揮。它執行上述兩層管線,並對外提供兩個 gRPC 端點:<code>ScoredPostsService</code>(回傳純排序貼文,供下游使用)與 <code>ForYouFeedService</code>(回傳組裝完成的資訊流項目)。</p>
+
+<div class="kv card">
+  <dt>技術棧</dt><dd>Rust + Tokio 非同步;gRPC 用 Tonic(mTLS、gzip/zstd 壓縮);protobuf / thrift 序列化。</dd>
+  <dt>快取</dt><dd><code>moka</code> 行程內 LRU + <code>xds_redis</code> 分散式 Redis(zstd level 6 壓縮)。</dd>
+  <dt>實驗框架</dt><dd><code>xai_feature_switches</code>(依使用者/國家/客戶端比對)+ <code>xai_decider</code>(執行期布林旗標)。</dd>
+  <dt>外部依賴</dt><dd>Gizmoduck(使用者資料)、TweetEntityService、SocialGraph、Strato、Phoenix、Thunder、AdIndex、VisibilityFiltering 等 20+ 服務。</dd>
+</div>
+
+<h4>候選來源(Candidate Sources)</h4>
+<table>
+<thead><tr><th>來源</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td><code>ThunderSource</code></td><td>站內貼文 —— 來自你追蹤帳號的近期貼文。</td></tr>
+<tr><td><code>PhoenixSource</code></td><td>站外主力檢索 —— Phoenix 嵌入向量 ANN 檢索叢集。</td></tr>
+<tr><td><code>PhoenixTopicsSource</code></td><td>主題過濾的站外檢索,用特定主題 entity ID。</td></tr>
+<tr><td><code>PhoenixMOESource</code></td><td>來自獨立的 Phoenix Mixture-of-Experts 叢集。</td></tr>
+<tr><td><code>TweetMixerSource</code></td><td>另一路站外推薦(<code>HOME_RECOMMENDED_TWEETS</code>)。</td></tr>
+<tr><td><code>CachedPostsSource</code></td><td>Redis 命中時直接回傳已評分快取,跳過全部檢索/評分。</td></tr>
+</tbody>
+</table>
+
+<h4>廣告混入(Ads Module)</h4>
+<p>2026 年 5 月新增的 <code>home-mixer/ads/</code> 模組負責把廣告插入資訊流。兩種策略由 feature switch 切換:</p>
+<ul>
+<li><strong>SafeGapAdsBlender</strong> —— 找出「安全間隙」:兩則連續的<em>非中度風險</em>貼文之間的位置,把廣告塞進去。</li>
+<li><strong>PartitionOrganicAdsBlender</strong> —— 把安全的自然貼文均分成數段,每段貢獻一組「(上方貼文, 廣告, 下方貼文)」三明治。</li>
+</ul>
+<p>兩種策略都套用<strong>品牌安全</strong>三條捨棄規則:若廣告相鄰的貼文是低風險/被列入特定作者 handle/含封鎖關鍵字,該廣告就被丟棄。貼文的品牌安全等級(Safe / LowRisk / MediumRisk)由 SafetyLabelStore 的標籤集計算 —— 值得注意的是,<strong>未經 Grok 評分或未經 PTOS 審查的貼文,預設視為 MediumRisk</strong>。</p>
+
+<!-- CANDIDATE PIPELINE -->
+<h3 id="candidate-pipeline">2. Candidate Pipeline <span class="tag rust">Rust</span> — 可重用框架</h3>
+<p><strong>角色:</strong>一個泛型的 Rust 框架(對 query 型別 <code>Q</code> 與候選型別 <code>C</code> 泛型化),把推薦管線拆成一組可組合的 trait。Home Mixer 就是用它搭起來的。</p>
+
+<table>
+<thead><tr><th>Trait</th><th>職責</th><th>執行方式</th></tr></thead>
+<tbody>
+<tr><td><code>QueryHydrator</code></td><td>檢索前先豐富 query(抓使用者特徵、社交圖)</td><td>全部<b>平行</b></td></tr>
+<tr><td><code>Source</code></td><td>從一個檢索後端取一批候選</td><td>全部<b>平行</b></td></tr>
+<tr><td><code>Hydrator</code></td><td>批次豐富候選(補作者、媒體資料)</td><td>全部<b>平行</b></td></tr>
+<tr><td><code>Filter</code></td><td>把候選分成 kept / removed 兩堆</td><td><b>循序</b></td></tr>
+<tr><td><code>Scorer</code></td><td>對候選打分數</td><td><b>循序</b>(每個都改完才換下一個)</td></tr>
+<tr><td><code>Selector</code></td><td>依分數排序,選 Top-K</td><td>單一,同步</td></tr>
+<tr><td><code>SideEffect</code></td><td>事後副作用(記錄、快取暖機)</td><td><code>tokio::spawn</code> 背景執行,不阻塞回應</td></tr>
+</tbody>
+</table>
+
+<div class="card warn">
+<p style="margin-top:0"><strong>設計亮點 —— 全程「優雅降級」(graceful degradation):</strong></p>
+<p style="margin-bottom:0">框架沒有任何 fail-fast。任何一個 hydrator/source/scorer 失敗,只會被記錄 <code>error!</code> 然後<strong>靜默跳過</strong> —— 該來源貢獻零候選,或該欄位不更新。一個元件壞掉只會降低品質,<strong>永遠不會讓整個管線中斷</strong>。此外 <code>Hydrator</code> 契約明文禁止丟棄候選(要丟請用 Filter 階段),框架以「回傳長度必須等於輸入長度」來強制這點。</p>
+</div>
+<p>每個元件都有 <code>enable(&query)</code> 方法 —— 這是 per-request 功能旗標與 A/B 實驗的主要機制。所有階段都用 <code>tracing</code> span 加 <code>xai_stats_receiver</code> 指標做觀測。</p>
+
+<!-- THUNDER -->
+<h3 id="thunder">3. Thunder <span class="tag rust">Rust</span> — 站內貼文倉儲</h3>
+<p><strong>角色:</strong>一個記憶體內的貼文倉儲 + 即時消化管線,專門服務「站內候選」—— 也就是你追蹤帳號的貼文。它消化 Kafka 的貼文建立/刪除事件,在 RAM 維護每位使用者的索引,提供<strong>次毫秒級</strong>查詢,完全不打外部資料庫。</p>
+
+<h4>記憶體資料模型</h4>
+<p>採用<strong>兩層指標結構</strong>來省記憶體:</p>
+<ul>
+<li><code>TinyPost</code>(僅 16 bytes:<code>post_id</code> + <code>created_at</code>)—— 存在每位使用者的時間軸佇列裡。</li>
+<li><code>LightPost</code>(完整貼文資料)—— 存在全域的 <code>posts</code> map,只有當貼文真的通過所有過濾條件時才會被取出。</li>
+</ul>
+<p>每位使用者的貼文分三類存放:<code>original_posts</code>(原創)、<code>secondary_posts</code>(回覆與轉推)、<code>video_posts</code>(含影片)。五張 map 全部用 <code>DashMap</code>(分片鎖,無全域鎖),讓消化與服務可以高度平行。</p>
+
+<h4>Kafka 消化的雙管線</h4>
+<p>一個 <code>is_serving</code> 旗標決定 Thunder 實例扮演哪種角色:</p>
+<ul>
+<li><strong>Feeder 模式(v1)</strong> —— 消化原始的 Thrift <code>TweetEvent</code> 洪流,正規化後重新發布成較輕量的 protobuf <code>InNetworkEvent</code>。</li>
+<li><strong>Serving 模式(v2)</strong> —— 消化已預處理的 protobuf 事件,直接寫入記憶體倉儲,並對外提供 gRPC 服務。</li>
+</ul>
+<p>這種<strong>角色分離</strong>把「原始事件解碼」與「低延遲服務」解耦。保留期預設 2 天,背景每 2 分鐘自動修剪一次過舊貼文。</p>
+
+<div class="card">
+<p style="margin:0"><strong>效能關鍵細節:</strong>查詢迴圈、排序、修剪全都跑在 <code>tokio::task::spawn_blocking</code>,避免 CPU 密集工作餓死非同步 I/O 執行緒。讀取 <code>DashMap</code> 時還有一個刻意的<em>「複製後再做巢狀查詢」</em>模式 —— 先把值複製出來、立刻釋放分片讀鎖,再做下一次查詢,以防死鎖。每個查詢還有 per-request 超時,在追蹤名單很大時提供有界延遲。</p>
+</div>
+
+<!-- PHOENIX -->
+<h3 id="phoenix">4. Phoenix <span class="tag py">Python · JAX</span> — ML 核心</h3>
+<p><strong>角色:</strong>整套演算法的機器學習大腦,用 Python + <strong>JAX / DeepMind Haiku</strong> 寫成(沒有用 PyTorch)。它做兩件事:檢索(retrieval)與排序(ranking)。</p>
+
+<h4>① 檢索:兩塔模型(Two-Tower)</h4>
+<p>負責從全站語料庫快速撈出站外候選:</p>
+<ul>
+<li><strong>User Tower</strong> —— 把使用者特徵與互動歷史編碼成一個向量;會經過共用的 Phoenix transformer,再對所有有效位置做 mean-pooling 並 L2 正規化。</li>
+<li><strong>Candidate Tower</strong> —— 把每則貼文編碼成向量(預設走兩層 SiLU MLP 投影)。</li>
+<li><strong>相似度搜尋</strong> —— 兩邊都 L2 正規化後做點積(等同 cosine similarity),用 <code>jax.lax.top_k</code> 取 Top-K。釋出的範例語料庫含 53.7 萬則預先算好的運動類貼文向量。</li>
+</ul>
+
+<h4>② 排序:帶「候選隔離」的 Transformer</h4>
+<p>排序模型 <code>PhoenixModel</code> 包著一個從 <a href="https://github.com/xai-org/grok-1">Grok-1 開源版</a>移植來的 transformer(<code>grok.py</code>;<code>pyproject.toml</code> 的專案名稱直接就叫 <code>grok-1</code>)。輸入序列的排版是:</p>
+<div class="formula">[使用者 token ×1] + [互動歷史 ×127] + [候選貼文 ×64] &nbsp;→&nbsp; 共 192 個 token</div>
+
+<div class="card accent">
+<p style="margin-top:0"><strong>最關鍵的架構設計 —— 候選隔離注意力遮罩(Candidate-Isolation Attention Mask):</strong></p>
+<p>從一個因果(下三角)遮罩出發,然後<strong>把「候選對候選」的整個子區塊歸零</strong>,只保留對角線(每則候選對自己的 self-attention)。</p>
+<p style="margin-bottom:0">結果:每則候選都能<em>雙向</em>看到「使用者 token + 完整歷史」,但<strong>看不到其他任何候選</strong>。這讓每則貼文的分數成為 <code>(使用者情境, 該候選)</code> 的獨立函數 —— 分數不會因為這一批裡有哪些其他貼文而改變,因此<strong>一致、可快取</strong>。這正是 README「Key Design Decisions」第 2 點的程式碼實現。</p>
+</div>
+
+<h4>Hash-Based Embeddings(雜湊嵌入)</h4>
+<p>檢索與排序都不用傳統的「每個 ID 一個 embedding」查找表。每個實體(使用者、貼文、作者)用 <strong>N 個獨立的線性同餘雜湊函數</strong>映射到共用嵌入表的不同列:</p>
+<div class="formula">raw = (id × scale[j] + bias[j]) % modulus<br>bucket = (raw % (vocab_size − 1)) + 1 &nbsp;&nbsp;<span class="muted"># 0 保留給 padding</span></div>
+<p>得到的 N 個 embedding 再經線性投影合成。這讓固定大小的嵌入表能涵蓋無上限的 ID 空間。</p>
+
+<h4>多行為預測(Multi-Action Prediction)</h4>
+<p>模型不是只輸出單一「相關性」分數,而是對每則候選預測 <strong>19 種行為機率</strong>:</p>
+<div class="badge-row">
+<span class="pill">favorite 讚</span><span class="pill">reply 回覆</span><span class="pill">repost 轉發</span><span class="pill">quote 引用</span>
+<span class="pill">click 點擊</span><span class="pill">profile_click</span><span class="pill">video_view</span><span class="pill">photo_expand</span>
+<span class="pill">share 分享</span><span class="pill">share_via_dm</span><span class="pill">share_via_copy_link</span><span class="pill">dwell 停留</span>
+<span class="pill">quoted_click</span><span class="pill">follow_author 追蹤作者</span>
+<span class="pill" style="border-color:var(--red);color:#ff8a90">not_interested 不感興趣</span>
+<span class="pill" style="border-color:var(--red);color:#ff8a90">block_author 封鎖</span>
+<span class="pill" style="border-color:var(--red);color:#ff8a90">mute_author 靜音</span>
+<span class="pill" style="border-color:var(--red);color:#ff8a90">report 檢舉</span>
+<span class="pill">dwell_time</span>
+</div>
+<p>注意最後四項是<strong>負向行為</strong> —— 模型也學著預測「你會討厭什麼」。</p>
+
+<h4>釋出的預訓練模型</h4>
+<p>這次附帶一個迷你版 Phoenix 模型(透過 Git LFS 以約 2.8 GB 的 zip 發布),讓人不必自己訓練就能跑 inference:</p>
+<div class="kv card">
+  <dt>嵌入維度</dt><dd>128(README 提到 256-dim 為另一規格)</dd>
+  <dt>Transformer 層數</dt><dd>4 層</dd>
+  <dt>注意力頭數</dt><dd>4 個(Q 與 KV 各 4),key size 32</dd>
+  <dt>歷史序列長</dt><dd>127;候選序列長 64</dd>
+  <dt>詞彙表</dt><dd>使用者 / 貼文 / 作者 各 100 萬</dd>
+  <dt>正規化 / 位置編碼</dt><dd>RMSNorm + RoPE;FFN 用 GeGLU 閘控</dd>
+</div>
+<p class="muted">註:此釋出版的 <code>DenseBlock</code> 是標準稠密 FFN,<strong>沒有 Mixture-of-Experts</strong> —— README 說明這份程式碼「除了特定的擴展優化外」代表內部使用的模型,MoE 可能正是被省略的優化之一(雖然線上有獨立的 PhoenixMOESource)。檢索與排序是兩個<strong>權重不共用</strong>的獨立模型。</p>
+
+<!-- GROX -->
+<h3 id="grox">5. Grox <span class="tag py">Python</span> — 內容理解服務</h3>
+<p><strong>角色:</strong>X 的即時內容理解服務,2026 年 5 月新增。它坐在「原始貼文流」與「推薦管線」之間 —— 每則新貼文一發出,就透過 Kafka 進來,跑過一整套 <strong>LLM 驅動的分類器與嵌入模型</strong>,把結構化標註(垃圾標籤、安全政策旗標、品質分數、主題分類、向量嵌入)寫回平台資料庫,供下游排序演算法使用。</p>
+
+<h4>任務執行引擎</h4>
+<p>由三個長駐元件組成,各跑在獨立 OS 行程,透過共享佇列通訊:</p>
+<ul>
+<li><strong>Dispatcher</strong> —— 從 Kafka 拉任務塞進佇列;讀回結果、ack offset、失敗重試;以 <code>max_in_flight</code> 做反壓。</li>
+<li><strong>Engine</strong> —— 從佇列取任務,每個任務開一個 asyncio 協程,交給 <code>PlanMaster.exec()</code> 處理。</li>
+<li><strong>gRPC Server</strong> —— 與前兩者並行啟動。</li>
+</ul>
+<p><code>Plan</code> 是一張任務 DAG(有向無環圖),帶 <code>REQUIRED_ELIGIBILITY</code> 閘門 —— 同一個 payload 可帶多個 eligibility,因此 <code>PlanMaster</code> 能在同一則貼文上平行跑多個 plan,避免重複載入資料。</p>
+
+<h4>LLM 分類器</h4>
+<table>
+<thead><tr><th>分類器</th><th>偵測什麼</th></tr></thead>
+<tbody>
+<tr><td><code>SpamEapiLowFollowerClassifier</code></td><td>低粉絲帳號發出的垃圾回覆。</td></tr>
+<tr><td><code>BangerInitialScreenClassifier</code></td><td>貼文品質 / 爆紅潛力;輸出 <code>quality_score</code>、主題分類、內容標籤,以及 <code>slop_score</code>(1–3,標記低品質/AI 灌水內容)。</td></tr>
+<tr><td><code>PostSafetyDeluxeClassifier</code></td><td>熱門貼文的安全旗標(NSFW、血腥、暴力等布林標註)。</td></tr>
+<tr><td><code>SafetyPtosCategoryClassifier</code></td><td>PTOS 兩階段政策管線的<strong>第一階段</strong>:辨識違反了哪些政策大類(暴力媒體、成人內容、垃圾、仇恨/霸凌、暴力言論、自殘等)。</td></tr>
+<tr><td><code>SafetyPtosPolicyClassifier</code></td><td>PTOS <strong>第二階段</strong>:對每個被標記的大類做細粒度政策判定。Deluxe 模式會用 Grok 4.2 推理模型。</td></tr>
+<tr><td><code>ReplyScorer</code></td><td>為回覆排序評分(0–3 分品質)。</td></tr>
+</tbody>
+</table>
+
+<h4>Grox 如何餵養推薦演算法</h4>
+<p>Grox 的輸出分兩路流向下游:</p>
+<ul>
+<li><strong>安全 / 執法寫入</strong> —— 垃圾標籤、PTOS 安全標籤、品質分數、主題分類寫進 Strato 的 <code>UnifiedPostAnnotations</code> / <code>SafetyPostAnnotations</code>。排序演算法讀這些來<strong>提升、降權或過濾</strong>貼文(回想前面 Home Mixer 的品牌安全:「未經 Grok 評分」的貼文預設 MediumRisk —— 這個 Grok 評分就是 Grox 產出的)。</li>
+<li><strong>嵌入寫入</strong> —— V3/V4/V5 多模態貼文嵌入向量寫進 Strato,供基於內容的近鄰檢索使用。</li>
+</ul>
+<p class="muted">值得一提的設計:ASR(語音轉文字)管線跑在多個獨立子行程,用 ffmpeg 從影片抽音軌,避免緩慢的轉錄拖垮主任務迴圈;每個子行程還註冊週期性 <code>gc.collect()</code> 以對抗大量圖片/音訊位元組造成的記憶體壓力。</p>
+
+<!-- ============ DEEP DIVE ============ -->
+<h2 id="deep">關鍵機制深入</h2>
+
+<h3 id="scoring">評分與排序</h3>
+<p>排序由內層管線的三個 scorer 循序完成:</p>
+
+<h4>第一步 — PhoenixScorer:取得 ML 預測</h4>
+<p>呼叫 Phoenix 模型,對每則候選回傳 19+ 種行為機率(<code>favorite_score</code>、<code>reply_score</code>… <code>report_score</code>)。對新使用者(行為歷史少於門檻)會切換到專屬的推論叢集。</p>
+
+<h4>第二步 — RankingScorer:加權合成最終分數</h4>
+<p>把多種機率合成一個分數。核心公式:</p>
+<div class="formula">最終分數 = Σ ( weight<sub>i</sub> × P(action<sub>i</sub>) )</div>
+<p>正向行為(讚、轉發、分享、追蹤作者)權重為<strong>正</strong>;負向行為(封鎖、靜音、檢舉、不感興趣)權重為<strong>負</strong>,把使用者大概會討厭的內容往下壓。關鍵實作細節:</p>
+<ul>
+<li>所有權重都是 <strong>feature-switch 參數</strong>,每次請求即時載入 —— 可在不重新部署的情況下調整線上權重。</li>
+<li><strong>影片權重</strong>(VQV)若影片長度低於門檻會被歸零。</li>
+<li><strong>作者多樣性懲罰</strong> —— 依分數排序後,同一作者的後續貼文分數會被一個衰減乘數壓低:<code>(1 − floor) × decay^位次 + floor</code>,確保資訊流不被單一作者洗版。</li>
+<li><strong>站外(OON)權重</strong> —— 站外候選的最終分數會再乘上一個 OON 權重因子(主題請求、新使用者各有不同因子)。</li>
+</ul>
+
+<h4>第三步 — VMRanker:可選的價值模型重排</h4>
+<p>啟用時,把所有候選送進 VMRanker 服務做最終重排,並可套用 <strong>DPP(行列式點過程)</strong>多樣性參數。</p>
+
+<h3 id="filtering">過濾機制</h3>
+<p>過濾分兩階段執行 —— 評分前濾掉「不該進入排序」的內容,選擇後再做最終可見度把關:</p>
+<div class="grid">
+<div class="card">
+<h4>評分前過濾(Pre-Scoring)</h4>
+<ul style="font-size:0.88rem;margin:0">
+<li><code>DropDuplicatesFilter</code> — 重複貼文 ID</li>
+<li><code>AgeFilter</code> — 超過時效門檻的舊貼文</li>
+<li><code>SelfTweetFilter</code> — 使用者自己的貼文</li>
+<li><code>RetweetDeduplicationFilter</code> — 同內容轉推去重</li>
+<li><code>IneligibleSubscriptionFilter</code> — 無權存取的付費牆內容</li>
+<li><code>PreviouslySeen / ServedPostsFilter</code> — 已看過 / 已服務過</li>
+<li><code>MutedKeywordFilter</code> — 含使用者靜音關鍵字</li>
+<li><code>AuthorSocialgraphFilter</code> — 封鎖 / 靜音的作者</li>
+<li><code>TopicIdsFilter</code> — 主題不符</li>
+</ul>
+</div>
+<div class="card">
+<h4>選擇後過濾(Post-Selection)</h4>
+<ul style="font-size:0.88rem;margin:0">
+<li><code>VFFilter</code> — 可見度過濾:移除已刪除 / 垃圾 / 暴力 / 血腥等貼文</li>
+<li><code>AncillaryVFFilter</code> — 移除附屬貼文(被丟棄的引用 / 祖先貼文)</li>
+<li><code>DedupConversationFilter</code> — 同一對話串的多個分支去重,只留最高分的那則</li>
+</ul>
+</div>
+</div>
+
+<h3 id="design">五個核心設計決策</h3>
+<p>README 明列五點,對照程式碼後可印證:</p>
+<ol>
+<li><strong>沒有手工特徵</strong> —— 系統完全依賴 Grok transformer 從使用者互動序列學習相關性,不做任何人工特徵工程,大幅降低資料管線複雜度。</li>
+<li><strong>排序時的候選隔離</strong> —— transformer 推論時,候選之間互相看不見、只能看使用者情境;確保分數不受同批其他貼文影響,因此一致且可快取。</li>
+<li><strong>雜湊式嵌入</strong> —— 檢索與排序都用多個雜湊函數做嵌入查找,讓固定大小的表涵蓋無限 ID 空間。</li>
+<li><strong>多行為預測</strong> —— 不預測單一「相關性」,而是預測許多種行為的機率(含負向行為)。</li>
+<li><strong>可組合的管線架構</strong> —— <code>candidate-pipeline</code> crate 把「管線執行/監控」與「業務邏輯」分離,獨立階段平行執行、優雅處理錯誤,新增 source/filter/scorer 都很容易。</li>
+</ol>
+
+<!-- ============ TAKEAWAY ============ -->
+<h2 id="takeaway">結語</h2>
+<h3 id="summary">重點整理</h3>
+<div class="card accent">
+<ul style="margin:0">
+<li><strong>哲學:</strong>「廢除手工特徵,讓一個基於 Grok 的 transformer 透過讀你的行為序列來決定相關性」是這套演算法相較舊版最大的轉變。</li>
+<li><strong>雙來源:</strong>站內(Thunder,你追蹤的人)+ 站外(Phoenix 兩塔檢索,全站語料庫),合併後共同排序。</li>
+<li><strong>排序核心:</strong>一個帶「候選隔離注意力遮罩」的 transformer,對每則貼文獨立預測 19 種行為機率,再加權合成 —— 正向加分、負向扣分。</li>
+<li><strong>分層清楚:</strong>線上低延遲服務(Home Mixer / Thunder / Candidate Pipeline)用 Rust;機器學習(Phoenix / Grox)用 Python+JAX。</li>
+<li><strong>工程務實:</strong>全程優雅降級(任何元件壞掉不中斷管線)、feature-switch 驅動可即時調權重、Redis 候選快取捷徑、廣告插入帶品牌安全把關。</li>
+<li><strong>內容治理:</strong>新增的 Grox 服務用 LLM 對每則貼文做垃圾偵測、安全政策(PTOS)分類與品質評分,結果回寫並影響排序與廣告相鄰安全。</li>
+<li><strong>透明度的界線:</strong>釋出的是「具代表性」的程式碼與一個迷你預訓練模型;實際線上模型的特定擴展優化(可能含 MoE)、真實權重數值與訓練資料並未公開。</li>
+</ul>
+</div>
+
+<div class="footnote">
+<p>本報告由五個平行探勘 agent 閱讀 <code>x-algorithm</code> 原始碼後彙整。所有架構描述均基於實際程式碼與 <code>README.md</code>;子系統檔案路徑、trait 簽章、模型參數等細節可回到 clone 下來的程式庫對照查證。</p>
+<p>程式庫:<a href="https://github.com/xai-org/x-algorithm">github.com/xai-org/x-algorithm</a> · 授權 Apache License 2.0 · 報告產出日期 2026-05-14</p>
+</div>
+
+</main>
+</div>
+</body>
+</html>
