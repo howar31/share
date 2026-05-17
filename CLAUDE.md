@@ -1,13 +1,13 @@
 # share
 
 Ad-hoc public hosting for occasional static files (HTML reports, demos, etc.),
-served via GitHub Pages at https://REDACTED.
+served via GitHub Pages under https://REDACTED/share/.
 
 ## Layout
 
 - One directory per shared item; the item's entry file is `index.html` inside it.
-  The URL becomes `https://REDACTED/<item>/` — no `.html`, no `index.html`
-  in the path.
+  The URL becomes `https://REDACTED/share/<item>/` — no `.html`, no
+  `index.html` in the path.
 - `README.md` is the index: one row per item with title, publish date, and link.
 - No category or year subdirectories. Keep the structure flat at one level until
   a real need appears (avoid premature abstraction).
@@ -16,10 +16,11 @@ served via GitHub Pages at https://REDACTED.
 
 ## Custom domain
 
-- `CNAME` holds `REDACTED`. Do not delete or rename it — removing it breaks
-  the custom domain.
-- DNS requirement: `REDACTED` must be a CNAME record pointing to
-  `REDACTED`. A given subdomain can serve only one GitHub Pages site.
+- This repo is served at https://REDACTED/share/ — a sub-path of the
+  account's GitHub Pages custom domain.
+- The custom domain `REDACTED` is owned by the `REDACTED`
+  user-site repository, not this one. Do NOT add a `CNAME` file here — a project
+  repo automatically inherits the account custom domain as `/<repo>/`.
 
 ## Privacy
 
