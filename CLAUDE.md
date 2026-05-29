@@ -32,6 +32,9 @@ served via GitHub Pages.
 ## Adding an item
 
 1. Create `<item>/index.html` (plus any assets in the same directory).
-2. Commit and push to `main`; GitHub Pages redeploys automatically.
+2. Commit and push to `main`; GitHub Pages redeploys automatically. This repo is
+   a single-page sharing container, not an evolving codebase, so the commit flow
+   skips documentation sync: `README.md` keeps no item index (see Layout) and
+   there is no `SPEC.md` to maintain.
 3. Share the item's `/<item>/` URL directly with whoever needs it. Nothing links
    to it, so it is only reachable by that URL.

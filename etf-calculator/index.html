@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETF 存股複利試算器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070d1a;
+      --surface: #0d1729;
+      --surface2: #111e30;
+      --border: #1a2e47;
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --gold: #f59e0b;
+      --green: #34d399;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(1.5px 1.5px at 15% 20%, rgba(255,255,255,0.35) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(2px 2px at 55% 35%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 72% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 88% 55%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 28% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(2px 2px at 65% 75%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 48% 88%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(circle at 20% 0%, rgba(56,189,248,0.07) 0%, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(129,140,248,0.05) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 20px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .eyebrow {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      opacity: 0.75;
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 26px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #e2e8f0 20%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Mode Tabs */
+    .mode-tabs {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 5px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.25s;
+      color: var(--text-muted);
+      line-height: 1.5;
+      user-select: none;
+    }
+
+    .mode-tab small {
+      display: block;
+      font-size: 10px;
+      opacity: 0.6;
+      font-weight: 300;
+      margin-top: 2px;
+    }
+
+    .mode-tab.active {
+      background: linear-gradient(135deg, rgba(129,140,248,0.9) 0%, rgba(56,189,248,0.9) 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(56,189,248,0.25);
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .card-title {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    /* Inputs */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    label .hint {
+      color: var(--text-muted);
+      font-weight: 300;
+      font-size: 10px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 48px 12px 16px;
+      color: var(--text);
+      font-size: 17px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Presets */
+    .presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      padding: 4px 11px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+
+    /* Slider */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct, 74%), var(--border) var(--pct, 74%));
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56,189,248,0.5);
+      transition: box-shadow 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 16px rgba(56,189,248,0.7);
+    }
+
+    .slider-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 56px;
+      text-align: right;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 9px 8px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .toggle-btn.active {
+      background: rgba(56,189,248,0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .helper {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+
+    /* Calculate Button */
+    .calc-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 50%, #38bdf8 100%);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans TC', sans-serif;
+      letter-spacing: 3px;
+      transition: all 0.3s;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calc-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .calc-btn:hover::after { transform: translateX(100%); }
+    .calc-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(56,189,248,0.35);
+    }
+
+    /* Results */
+    .results-section {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .results-section.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-result {
+      text-align: center;
+      padding: 32px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-result::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 110%, rgba(56,189,248,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .hero-number {
+      font-family: 'Orbitron', monospace;
+      font-size: 44px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .hero-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .stat-value.total { color: var(--accent); }
+    .stat-value.principal { color: var(--text-dim); }
+    .stat-value.gain { color: var(--green); }
+    .stat-value.multi { color: var(--gold); font-size: 22px; }
+
+    .stat-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* Reverse PMT result */
+    .pmt-hero {
+      text-align: center;
+      padding: 20px;
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .pmt-hero-label { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+
+    .pmt-hero-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .pmt-hero-unit { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Chart */
+    canvas {
+      display: block;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    /* ETF Table */
+    .etf-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .etf-table th {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .etf-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(26,46,71,0.6);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .etf-table tr:last-child td { border-bottom: none; }
+    .etf-table tr:hover td { background: rgba(56,189,248,0.03); }
+
+    .etf-code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .etf-name { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
+
+    .rate { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 14px; }
+    .rate-high { color: var(--green); }
+    .rate-mid { color: var(--gold); }
+    .rate-low { color: var(--text-muted); }
+
+    .long-rate { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); }
+
+    .fill-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--accent);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Noto Sans TC', sans-serif;
+      white-space: nowrap;
+    }
+
+    .fill-btn:hover {
+      background: rgba(56,189,248,0.12);
+      border-color: var(--accent);
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding: 14px 16px;
+      background: rgba(248,113,113,0.04);
+      border: 1px solid rgba(248,113,113,0.15);
+      border-radius: 10px;
+      margin-top: 18px;
+    }
+
+    .disclaimer strong { color: #fca5a5; }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 20px 0;
+    }
+
+    @media (max-width: 580px) {
+      .input-grid { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .hero-number { font-size: 32px; }
+      h1 { font-size: 20px; }
+      .stat-item:last-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">ETF · 複利試算 · PMT 公式</div>
+    <h1>存股計畫試算器</h1>
+    <p class="subtitle">月初/月末年金 · 含庫存試算 · 正反向計算</p>
+  </header>
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="tab-fwd" onclick="switchMode('forward')">
+      📈 正向計算
+      <small>每月存 X → 未來有多少</small>
+    </div>
+    <div class="mode-tab" id="tab-rev" onclick="switchMode('reverse')">
+      🎯 反向計算
+      <small>目標 X 萬 → 每月要存多少</small>
+    </div>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title">▸ 輸入參數</div>
+    <div class="input-grid">
+
+      <!-- Forward: PMT -->
+      <div class="input-group" id="g-pmt">
+        <label>每月投入金額</label>
+        <div class="input-wrapper">
+          <input type="number" id="pmt" value="25000" min="100" step="100">
+          <span class="input-unit">元</span>
+        </div>
+        <div class="presets">
+          <button class="preset-btn" onclick="setVal('pmt',5000)">5,000</button>
+          <button class="preset-btn" onclick="setVal('pmt',10000)">10,000</button>
+          <button class="preset-btn" onclick="setVal('pmt',25000)">25,000</button>
+          <button class="preset-btn" onclick="setVal('pmt',50000)">50,000</button>
+        </div>
+      </div>
+
+      <!-- Reverse: Target FV -->
+      <div class="input-group" id="g-target" style="display:none;">
+        <label>目標總資產</label>
+        <div class="input-wrapper">
+          <input type="number" id="fv-target" value="10000000" min="10000" step="10000">
+          <span class="input-unit">元</span>
+        </div>
+        <div class="presets">
+          <button class="preset-btn" onclick="setVal('fv-target',1000000)">100萬</button>
+          <button class="preset-btn" onclick="setVal('fv-target',3000000)">300萬</button>
+          <button class="preset-btn" onclick="setVal('fv-target',5000000)">500萬</button>
+          <button class="preset-btn" onclick="setVal('fv-target',10000000)">1000萬</button>
+        </div>
+      </div>
+
+      <!-- Months -->
+      <div class="input-group">
+        <label>投入月數</label>
+        <div class="input-wrapper">
+          <input type="number" id="months" value="60" min="1" max="480">
+          <span class="input-unit">月</span>
+        </div>
+        <div class="presets">
+          <button class="preset-btn" onclick="setVal('months',12)">1年</button>
+          <button class="preset-btn" onclick="setVal('months',36)">3年</button>
+          <button class="preset-btn" onclick="setVal('months',60)">5年</button>
+          <button class="preset-btn" onclick="setVal('months',120)">10年</button>
+          <button class="preset-btn" onclick="setVal('months',240)">20年</button>
+        </div>
+      </div>
+
+      <!-- Rate Slider -->
+      <div class="input-group full">
+        <label>年化報酬率</label>
+        <div class="slider-row">
+          <input type="range" id="rate-slider" min="0" max="50" step="0.5" value="37"
+            oninput="onSlider(this.value)">
+          <span class="slider-val" id="rate-display">37.0%</span>
+        </div>
+        <div class="input-wrapper" style="margin-top:8px;">
+          <input type="number" id="rate" value="37" min="0" max="200" step="0.1"
+            oninput="onRateInput(this.value)">
+          <span class="input-unit">%</span>
+        </div>
+        <p class="helper">可在下方 ETF 參考表點「套用」快速填入</p>
+      </div>
+
+      <!-- Initial Holdings -->
+      <div class="input-group full">
+        <label>現有 ETF 庫存市值 <span class="hint">（沒有填 0 即可）</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="initial" value="0" min="0" step="1000">
+          <span class="input-unit">元</span>
+        </div>
+        <p class="helper">已持有的庫存也會一起依報酬率複利成長，這是 App 公式裡 FV 缺口的關鍵變數</p>
+      </div>
+
+      <!-- Timing Toggle -->
+      <div class="input-group full">
+        <label>每月投入時間點</label>
+        <div class="toggle-row">
+          <button class="toggle-btn active" id="btn-start" onclick="setTiming('start')">
+            月初投入（期初年金）
+          </button>
+          <button class="toggle-btn" id="btn-end" onclick="setTiming('end')">
+            月末投入（期末年金）
+          </button>
+        </div>
+        <p class="helper">App 採用月初；多數台灣券商定期定額為月末扣款，差距約一個月複利</p>
+      </div>
+
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">開始試算 →</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section" id="results-section">
+
+    <div class="hero-result">
+      <div class="hero-label">📊 期末總資產市值</div>
+      <div class="hero-number" id="hero-num">—</div>
+      <div class="hero-sub" id="hero-sub">元</div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-item">
+        <div class="stat-label">自行投入本金</div>
+        <div class="stat-value principal" id="r-principal">—</div>
+        <div class="stat-sub" id="r-principal-pct"></div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">複利增長獲利</div>
+        <div class="stat-value gain" id="r-gain">—</div>
+        <div class="stat-sub" id="r-gain-pct"></div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">資產增長倍數</div>
+        <div class="stat-value multi" id="r-multi">—</div>
+        <div class="stat-sub">相較本金</div>
+      </div>
+    </div>
+
+    <!-- Reverse PMT output -->
+    <div class="card" id="r-pmt-card" style="display:none;">
+      <div class="card-title">▸ 反推結果</div>
+      <div class="pmt-hero">
+        <div class="pmt-hero-label">每月需投入（進位至百元）</div>
+        <div class="pmt-hero-num" id="r-pmt-num">—</div>
+        <div class="pmt-hero-unit">元 / 月</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="card-title">▸ 資產成長曲線</div>
+      <canvas id="chart" height="220"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ETF Reference -->
+  <div class="card">
+    <div class="card-title">▸ 常見 ETF 參考報酬率</div>
+
+    <table class="etf-table">
+      <thead>
+        <tr>
+          <th>代碼 / 名稱</th>
+          <th>近一年含息</th>
+          <th>長期平均</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="etf-code">0050</div>
+            <div class="etf-name">元大台灣卓越50</div>
+          </td>
+          <td><span class="rate rate-high">+37.13%</span></td>
+          <td><span class="long-rate">~12%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(37.13)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code">006208</div>
+            <div class="etf-name">富邦台灣50</div>
+          </td>
+          <td><span class="rate rate-high">+37%±</span></td>
+          <td><span class="long-rate">~12%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(37)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code">00878</div>
+            <div class="etf-name">國泰永續高股息</div>
+          </td>
+          <td><span class="rate rate-mid">+25%±</span></td>
+          <td><span class="long-rate">~15%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(25)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code">00919</div>
+            <div class="etf-name">群益台灣精選高息</div>
+          </td>
+          <td><span class="rate rate-mid">+30%±</span></td>
+          <td><span class="long-rate">~15%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(30)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code">0056</div>
+            <div class="etf-name">元大高股息</div>
+          </td>
+          <td><span class="rate rate-mid">+20%±</span></td>
+          <td><span class="long-rate">~10%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(20)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code">VOO / SPY</div>
+            <div class="etf-name">S&amp;P 500（美股）</div>
+          </td>
+          <td><span class="rate rate-mid">+20%±</span></td>
+          <td><span class="long-rate">~10%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(20)">套用</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="etf-code" style="color:var(--text-muted)">保守估算</div>
+            <div class="etf-name">台股長期歷史平均</div>
+          </td>
+          <td><span class="rate rate-low">—</span></td>
+          <td><span class="long-rate">~10-12%</span></td>
+          <td><button class="fill-btn" onclick="fillRate(10)">套用10%</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="disclaimer">
+      <strong>⚠ 重要風險提醒：</strong>
+      以上「近一年含息報酬」以元大投信等官方資料為準，截至 2025 年底。近年台股受 AI 題材帶動，報酬率遠高於長期平均，<strong>不代表未來績效，不保證獲利</strong>。建議同時參考「保守估算 10%」試算，以「長期平均」作為主要規劃基準。本試算器結果僅供個人學習參考，不構成任何投資建議。
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let mode = 'forward';
+  let timing = 'start';
+
+  // ── Mode ──────────────────────────────────────
+  function switchMode(m) {
+    mode = m;
+    document.getElementById('tab-fwd').classList.toggle('active', m === 'forward');
+    document.getElementById('tab-rev').classList.toggle('active', m === 'reverse');
+    document.getElementById('g-pmt').style.display = m === 'forward' ? '' : 'none';
+    document.getElementById('g-target').style.display = m === 'reverse' ? '' : 'none';
+    document.getElementById('results-section').classList.remove('visible');
+  }
+
+  function setTiming(t) {
+    timing = t;
+    document.getElementById('btn-start').classList.toggle('active', t === 'start');
+    document.getElementById('btn-end').classList.toggle('active', t === 'end');
+  }
+
+  // ── Helpers ───────────────────────────────────
+  function setVal(id, v) { document.getElementById(id).value = v; }
+
+  function onSlider(v) {
+    document.getElementById('rate').value = parseFloat(v).toFixed(1);
+    document.getElementById('rate-display').textContent = parseFloat(v).toFixed(1) + '%';
+    updateSliderTrack(v);
+  }
+
+  function onRateInput(v) {
+    const clamped = Math.min(50, Math.max(0, parseFloat(v) || 0));
+    document.getElementById('rate-slider').value = clamped;
+    document.getElementById('rate-display').textContent = parseFloat(v).toFixed(1) + '%';
+    updateSliderTrack(clamped);
+  }
+
+  function updateSliderTrack(v) {
+    const pct = (parseFloat(v) / 50) * 100;
+    document.getElementById('rate-slider').style.setProperty('--pct', pct + '%');
+  }
+
+  function fillRate(r) {
+    document.getElementById('rate').value = r;
+    onRateInput(r);
+  }
+
+  function fmt(n) {
+    if (Math.abs(n) >= 1e8) return (n / 1e8).toFixed(2) + ' 億';
+    if (Math.abs(n) >= 1e4)  return (n / 1e4).toFixed(1) + ' 萬';
+    return Math.round(n).toLocaleString();
+  }
+
+  function fmtFull(n) {
+    return Math.round(n).toLocaleString('zh-TW');
+  }
+
+  // ── Core Calculation ───────────────────────────
+  function fvAnnuity(pmt, r, n, isStart) {
+    if (r === 0) return pmt * n;
+    const base = pmt * (Math.pow(1 + r, n) - 1) / r;
+    return isStart ? base * (1 + r) : base;
+  }
+
+  function pmtFromFV(fv, r, n, isStart) {
+    if (r === 0) return fv / n;
+    const base = fv * r / (Math.pow(1 + r, n) - 1);
+    return isStart ? base / (1 + r) : base;
+  }
+
+  function monthlyRate(annualPct) {
+    return Math.pow(1 + annualPct / 100, 1 / 12) - 1;
+  }
+
+  // ── Calculate ──────────────────────────────────
+  function calculate() {
+    const n       = Math.max(1, parseInt(document.getElementById('months').value) || 60);
+    const rAnn    = parseFloat(document.getElementById('rate').value) || 0;
+    const initial = parseFloat(document.getElementById('initial').value) || 0;
+    const r       = monthlyRate(rAnn);
+    const isStart = timing === 'start';
+
+    let total, principal, pmt;
+
+    if (mode === 'forward') {
+      pmt = parseFloat(document.getElementById('pmt').value) || 0;
+      const fvInvest  = fvAnnuity(pmt, r, n, isStart);
+      const fvInitial = initial * Math.pow(1 + r, n);
+      total           = fvInvest + fvInitial;
+      principal       = pmt * n + initial;
+
+      document.getElementById('r-pmt-card').style.display = 'none';
+
+    } else {
+      const target    = parseFloat(document.getElementById('fv-target').value) || 0;
+      const fvInitial = initial * Math.pow(1 + r, n);
+      const gap       = target - fvInitial;
+      pmt             = pmtFromFV(gap, r, n, isStart);
+      pmt             = Math.ceil(pmt / 100) * 100;   // round up to 100
+      total           = target;
+      principal       = pmt * n + initial;
+
+      document.getElementById('r-pmt-num').textContent = fmtFull(pmt);
+      document.getElementById('r-pmt-card').style.display = 'block';
+    }
+
+    const gain  = total - principal;
+    const multi = principal > 0 ? total / principal : 0;
+
+    // Hero
+    document.getElementById('hero-num').textContent = fmtFull(total);
+    document.getElementById('hero-sub').textContent = '元（約 ' + fmt(total) + '）';
+
+    // Stats
+    document.getElementById('r-principal').textContent = fmt(principal);
+    document.getElementById('r-principal-pct').textContent =
+      (principal / total * 100).toFixed(1) + '% 為本金';
+    document.getElementById('r-gain').textContent = '+' + fmt(gain);
+    document.getElementById('r-gain-pct').textContent =
+      (gain / total * 100).toFixed(1) + '% 為複利';
+    document.getElementById('r-multi').textContent = multi.toFixed(2) + 'x';
+
+    document.getElementById('results-section').classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+
+    drawChart(pmt, n, r, initial, isStart, total);
+  }
+
+  // ── Chart ─────────────────────────────────────
+  function drawChart(pmt, n, r, initial, isStart, finalTotal) {
+    const canvas = document.getElementById('chart');
+    const dpr    = window.devicePixelRatio || 1;
+    const W      = canvas.offsetWidth;
+    const H      = 220;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const pad = { t: 24, r: 16, b: 32, l: 62 };
+    const cW  = W - pad.l - pad.r;
+    const cH  = H - pad.t - pad.b;
+
+    // Build data
+    const totalPts = [], principalPts = [];
+    for (let i = 0; i <= n; i++) {
+      const fvA = fvAnnuity(pmt, r, i, isStart);
+      const fvI = initial * Math.pow(1 + r, i);
+      totalPts.push(fvA + fvI);
+      principalPts.push(pmt * i + initial);
+    }
+    const maxVal = Math.max(...totalPts, 1);
+
+    const px = (i) => pad.l + (i / n) * cW;
+    const py = (v) => pad.t + cH - (v / maxVal) * cH;
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(26,46,71,0.9)';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#475569';
+    ctx.font = `10px 'IBM Plex Mono', monospace`;
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+      const y = pad.t + (i / 4) * cH;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cW, y); ctx.stroke();
+      ctx.fillText(fmt((1 - i / 4) * maxVal), pad.l - 6, y + 3.5);
+    }
+
+    // Principal fill
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(principalPts[0]));
+    for (let i = 1; i <= n; i++) ctx.lineTo(px(i), py(principalPts[i]));
+    ctx.lineTo(px(n), py(0)); ctx.lineTo(px(0), py(0)); ctx.closePath();
+    ctx.fillStyle = 'rgba(71,85,105,0.25)';
+    ctx.fill();
+
+    // Total fill
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + cH);
+    grad.addColorStop(0, 'rgba(56,189,248,0.28)');
+    grad.addColorStop(1, 'rgba(56,189,248,0.02)');
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(totalPts[0]));
+    for (let i = 1; i <= n; i++) ctx.lineTo(px(i), py(totalPts[i]));
+    ctx.lineTo(px(n), py(0)); ctx.lineTo(px(0), py(0)); ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Total line
+    ctx.beginPath();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.moveTo(px(0), py(totalPts[0]));
+    for (let i = 1; i <= n; i++) ctx.lineTo(px(i), py(totalPts[i]));
+    ctx.stroke();
+
+    // Principal line
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(148,163,184,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.moveTo(px(0), py(principalPts[0]));
+    for (let i = 1; i <= n; i++) ctx.lineTo(px(i), py(principalPts[i]));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // End dot
+    ctx.beginPath();
+    ctx.arc(px(n), py(totalPts[n]), 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // X-axis labels
+    ctx.fillStyle = '#475569';
+    ctx.font = `10px 'Noto Sans TC', sans-serif`;
+    ctx.textAlign = 'center';
+    const steps = Math.min(6, n);
+    for (let i = 0; i <= steps; i++) {
+      const mi = Math.round((i / steps) * n);
+      ctx.fillText(mi + '月', px(mi), H - 8);
+    }
+
+    // Legend
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(pad.l, 6, 14, 3);
+    ctx.fillStyle = '#64748b';
+    ctx.font = `10px 'Noto Sans TC', sans-serif`;
+    ctx.fillText('總資產', pad.l + 18, 11);
+
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(148,163,184,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l + 70, 8); ctx.lineTo(pad.l + 84, 8); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('本金', pad.l + 88, 11);
+  }
+
+  // Init
+  updateSliderTrack(37);
+</script>
+</body>
+</html>
