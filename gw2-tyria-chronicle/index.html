@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提瑞亞編年史 · The Chronicle of Tyria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@400;500;600&family=Noto+Serif+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#080A12;
+    --void-2:#0E1119;
+    --void-3:#141826;
+    --ink:#E9E5DA;
+    --ink-dim:#9D978A;
+    --ink-faint:#6A6559;
+    --gold:#C6A867;
+    --gold-dim:#8E7A47;
+    --line:rgba(198,168,103,0.18);
+    --aur-cyan:#54CFE0;
+    --aur-violet:#9E73D6;
+    --aur-gold:#E2B860;
+    --accent:#54CFE0;
+    --accent-2:#2E6A74;
+    --measure:66ch;
+    --serif-disp:"Cormorant Garamond","Noto Serif TC",serif;
+    --serif-body:"Spectral","Noto Serif TC",serif;
+    --cond:"Barlow Condensed",sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--serif-body);
+    font-weight:400;
+    line-height:1.78;
+    font-size:18px;
+    letter-spacing:.005em;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1px 1px at 70% 12%, rgba(255,255,255,.25), transparent),
+      radial-gradient(1px 1px at 85% 64%, rgba(255,255,255,.30), transparent),
+      radial-gradient(1px 1px at 38% 80%, rgba(255,255,255,.20), transparent),
+      radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,.18), transparent),
+      radial-gradient(1px 1px at 12% 70%, rgba(255,255,255,.22), transparent);
+    background-repeat:no-repeat;
+    opacity:.5;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ----- scroll progress: a ley line ----- */
+  .leyline{
+    position:fixed; top:0; left:0; height:2px; width:0%;
+    background:linear-gradient(90deg,var(--aur-cyan),var(--aur-violet),var(--aur-gold));
+    box-shadow:0 0 12px rgba(158,115,214,.6);
+    z-index:50; transition:width .12s linear;
+  }
+
+  .wrap{position:relative; z-index:1;}
+
+  /* ================= HERO ================= */
+  .hero{
+    min-height:100svh;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center;
+    padding:6vh 24px 8vh;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-glow{
+    position:absolute; top:42%; left:50%; transform:translate(-50%,-50%);
+    width:min(760px,108vw); aspect-ratio:1; pointer-events:none;
+    background:radial-gradient(circle, rgba(84,207,224,.12), rgba(158,115,214,.10) 38%, transparent 66%);
+    filter:blur(8px);
+  }
+  .sigil{
+    width:min(220px,46vw); height:min(220px,46vw);
+    margin-bottom:42px; position:relative;
+    animation:breathe 9s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{transform:scale(1) rotate(0deg);opacity:.96;}50%{transform:scale(1.04) rotate(.5deg);opacity:1;}}
+  .sigil svg{width:100%; height:100%; overflow:visible;}
+  .hero .eyebrow{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.46em;
+    font-size:.82rem; color:var(--gold); margin:0 0 22px; padding-left:.46em;
+    font-weight:500;
+  }
+  .hero h1{
+    font-family:var(--serif-disp); font-weight:500;
+    font-size:clamp(3rem,9vw,6.6rem); line-height:.96; margin:0;
+    letter-spacing:.01em;
+    background:linear-gradient(180deg,#fbf7ec 0%, #e7dcc2 60%, #b79c64 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero h1 .sub{
+    display:block; font-style:italic; font-weight:400;
+    font-size:clamp(1.1rem,3.2vw,1.9rem); letter-spacing:.12em;
+    color:var(--aur-cyan);
+    -webkit-text-fill-color:var(--aur-cyan);
+    margin-top:.5em; opacity:.9;
+  }
+  .hero .standfirst{
+    max-width:50ch; margin:34px auto 0; color:var(--ink-dim);
+    font-size:1.05rem; line-height:1.85; font-weight:300;
+  }
+  .scrollcue{
+    position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+    font-family:var(--cond); letter-spacing:.34em; text-transform:uppercase;
+    font-size:.7rem; color:var(--ink-faint);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .scrollcue::after{content:""; width:1px; height:40px; background:linear-gradient(var(--gold-dim),transparent); animation:cue 2.4s ease-in-out infinite;}
+  @keyframes cue{0%,100%{opacity:.2;transform:scaleY(.7);}50%{opacity:1;transform:scaleY(1);}}
+
+  /* ================= PROLOGUE / READER ================= */
+  .prologue{
+    max-width:var(--measure); margin:0 auto; padding:10vh 24px 4vh;
+  }
+  .prologue p{margin:0 0 1.5em; color:#d6d1c5;}
+  .prologue .lead{font-size:1.28rem; line-height:1.7; color:var(--ink); font-weight:400;}
+  .rule-orn{
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    margin:5vh auto; color:var(--gold-dim);
+  }
+  .rule-orn::before,.rule-orn::after{content:""; height:1px; flex:1; max-width:160px; background:linear-gradient(90deg,transparent,var(--line),transparent);}
+  .rule-orn span{font-family:var(--cond); letter-spacing:.4em; text-transform:uppercase; font-size:.74rem; color:var(--gold);}
+
+  /* ================= TIMELINE INDEX ================= */
+  .index{max-width:920px; margin:2vh auto 6vh; padding:0 24px;}
+  .index h2{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.32em;
+    font-size:.86rem; color:var(--ink-faint); font-weight:500; text-align:center; margin:0 0 40px;
+  }
+  .idx-grid{display:grid; gap:2px; border-top:1px solid var(--line);}
+  .idx-row{
+    display:grid; grid-template-columns:74px 1fr auto; align-items:baseline; gap:18px;
+    padding:16px 8px; border-bottom:1px solid var(--line);
+    text-decoration:none; color:inherit; transition:background .25s, padding-left .25s;
+  }
+  .idx-row:hover{background:rgba(255,255,255,.025); padding-left:18px;}
+  .idx-row .n{font-family:var(--cond); font-size:1.05rem; color:var(--era); letter-spacing:.05em;}
+  .idx-row .t{font-family:var(--serif-disp); font-size:1.5rem; font-weight:500; letter-spacing:.01em;}
+  .idx-row .t .en{display:block; font-family:var(--cond); font-size:.8rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); margin-top:2px;}
+  .idx-row .yr{font-family:var(--cond); font-size:.92rem; color:var(--ink-dim); white-space:nowrap; letter-spacing:.04em;}
+
+  /* ================= ERA SECTIONS ================= */
+  .era{
+    position:relative;
+    padding:9vh 24px;
+    border-top:1px solid var(--line);
+  }
+  .era-inner{max-width:var(--measure); margin:0 auto;}
+  .era-head{margin-bottom:5vh; position:relative;}
+  .era-num{
+    font-family:var(--cond); font-size:.86rem; letter-spacing:.34em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin-bottom:18px; display:flex; align-items:center; gap:14px;
+  }
+  .era-num::before{content:""; width:34px; height:1px; background:var(--accent); opacity:.7;}
+  .era h2.era-title{
+    font-family:var(--serif-disp); font-weight:600;
+    font-size:clamp(2.4rem,6.5vw,4.4rem); line-height:1.02; margin:0 0 .12em;
+    letter-spacing:.005em; color:#f3eedf;
+  }
+  .era .era-en{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.26em;
+    font-size:.96rem; color:var(--accent); opacity:.92; font-weight:500;
+  }
+  /* meta strip */
+  .meta{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:1px; margin:34px 0 0;
+    background:var(--line); border:1px solid var(--line);
+  }
+  .meta div{background:var(--void); padding:13px 16px;}
+  .meta dt{font-family:var(--cond); text-transform:uppercase; letter-spacing:.2em; font-size:.66rem; color:var(--ink-faint); margin-bottom:5px;}
+  .meta dd{margin:0; font-size:.96rem; color:var(--ink); line-height:1.4; font-weight:400;}
+  .meta dd b{color:var(--accent); font-weight:500;}
+
+  .era-body{margin-top:5vh;}
+  .era-body p{margin:0 0 1.5em; color:#dad5c9;}
+  .era-body p.first{position:relative;}
+  .era-body p.first::first-letter{
+    font-family:var(--serif-disp); font-weight:600;
+    float:left; font-size:4.4rem; line-height:.78; padding:.06em .12em 0 0;
+    color:var(--accent);
+  }
+  .era-body h3{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.2em;
+    font-size:.92rem; color:var(--gold); font-weight:600;
+    margin:3em 0 1em; padding-bottom:.6em; border-bottom:1px solid var(--line);
+  }
+  .era-body em{color:#efe9da; font-style:italic;}
+  .era-body strong{color:#fff; font-weight:500;}
+  .term{color:var(--accent); font-style:normal; font-weight:500; white-space:nowrap;}
+
+  blockquote{
+    margin:3.2em 0; padding:6px 0 6px 30px;
+    border-left:2px solid var(--accent);
+    font-family:var(--serif-disp); font-style:italic;
+    font-size:1.7rem; line-height:1.42; color:#f1ead9; font-weight:500;
+  }
+  blockquote cite{
+    display:block; margin-top:.7em; font-family:var(--cond); font-style:normal;
+    font-size:.82rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint); font-weight:500;
+  }
+
+  /* dramatis personae aside */
+  .cast{
+    margin:3em 0; padding:24px 26px;
+    background:linear-gradient(160deg,var(--void-2),var(--void));
+    border:1px solid var(--line); border-radius:2px; position:relative;
+  }
+  .cast::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:2px;
+    background:linear-gradient(var(--accent),transparent);
+  }
+  .cast h4{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.24em;
+    font-size:.74rem; color:var(--accent); margin:0 0 16px; font-weight:600;
+  }
+  .cast ul{list-style:none; margin:0; padding:0;}
+  .cast li{margin:0 0 12px; padding:0; font-size:.96rem; line-height:1.55; color:var(--ink-dim);}
+  .cast li:last-child{margin-bottom:0;}
+  .cast li b{color:var(--ink); font-weight:500; font-family:var(--serif-disp); font-size:1.08rem;}
+
+  /* reveal */
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity 1s ease, transform 1s ease;}
+  .reveal.in{opacity:1; transform:none;}
+
+  /* ================= EPILOGUE / FOOTER ================= */
+  .epilogue{
+    max-width:var(--measure); margin:0 auto; padding:11vh 24px 7vh; text-align:center;
+    border-top:1px solid var(--line);
+  }
+  .epilogue .eyebrow{font-family:var(--cond); text-transform:uppercase; letter-spacing:.42em; font-size:.78rem; color:var(--gold); margin-bottom:24px;}
+  .epilogue h2{font-family:var(--serif-disp); font-weight:500; font-size:clamp(2rem,5vw,3.2rem); line-height:1.1; margin:0 0 .6em; color:#f3eedf;}
+  .epilogue p{color:var(--ink-dim); font-size:1.08rem; max-width:54ch; margin:0 auto 1.4em; font-weight:300;}
+  .epilogue .prism{
+    width:140px; height:1px; margin:5vh auto 0;
+    background:linear-gradient(90deg,transparent,var(--aur-cyan),var(--aur-violet),var(--aur-gold),transparent);
+  }
+  footer{
+    text-align:center; padding:5vh 24px 7vh; color:var(--ink-faint);
+    font-family:var(--cond); letter-spacing:.16em; font-size:.78rem; line-height:2; text-transform:uppercase;
+  }
+  footer b{color:var(--gold-dim); font-weight:500;}
+
+  ::selection{background:rgba(158,115,214,.34); color:#fff;}
+
+  @media (max-width:640px){
+    body{font-size:17px;}
+    .idx-row{grid-template-columns:54px 1fr; }
+    .idx-row .yr{grid-column:2; font-size:.82rem;}
+    blockquote{font-size:1.36rem; padding-left:20px;}
+    .era-body p.first::first-letter{font-size:3.6rem;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;}
+    html{scroll-behavior:auto;}
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="leyline" id="ley"></div>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="hero-glow"></div>
+    <div class="sigil" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fdfbf2"/>
+            <stop offset="30%" stop-color="#9fe3ec"/>
+            <stop offset="62%" stop-color="#9e73d6"/>
+            <stop offset="100%" stop-color="#2a2350"/>
+          </radialGradient>
+          <linearGradient id="facet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#54cfe0"/>
+            <stop offset="50%" stop-color="#9e73d6"/>
+            <stop offset="100%" stop-color="#e2b860"/>
+          </linearGradient>
+        </defs>
+        <!-- outer prismatic ring of facets -->
+        <g fill="none" stroke="url(#facet)" stroke-width="1.1" opacity=".85">
+          <polygon points="100,8 150,40 150,100 100,132 50,100 50,40"/>
+          <polygon points="100,22 138,46 138,98 100,120 62,98 62,46"/>
+        </g>
+        <!-- the draconic eye -->
+        <ellipse cx="100" cy="72" rx="52" ry="34" fill="none" stroke="url(#facet)" stroke-width="1.4"/>
+        <ellipse cx="100" cy="72" rx="34" ry="34" fill="url(#core)"/>
+        <path d="M100 50 L108 72 L100 94 L92 72 Z" fill="#0a0d16" opacity=".9"/>
+        <circle cx="100" cy="72" r="5" fill="#fdfbf2"/>
+        <!-- crystalline rays below -->
+        <g stroke="url(#facet)" stroke-width="1" opacity=".55">
+          <line x1="100" y1="106" x2="100" y2="178"/>
+          <line x1="100" y1="150" x2="74" y2="172"/>
+          <line x1="100" y1="150" x2="126" y2="172"/>
+          <line x1="100" y1="128" x2="58" y2="158"/>
+          <line x1="100" y1="128" x2="142" y2="158"/>
+        </g>
+      </svg>
+    </div>
+    <p class="eyebrow">提瑞亞編年史</p>
+    <h1>巨龍紀元<span class="sub">The Chronicle of Tyria · 巨龍紀元及其後</span></h1>
+    <p class="standfirst">從上古巨龍自沉睡中甦醒,到牠們的時代徹底落幕,再到迷霧彼端的新威脅——這是一段橫跨十餘年、貫穿整個提瑞亞世界的完整史詩。</p>
+    <div class="scrollcue">向下捲動</div>
+  </header>
+
+  <!-- ============ PROLOGUE ============ -->
+  <section class="prologue reveal">
+    <p class="lead">這個世界叫做<span class="term">提瑞亞(Tyria)</span>。它的歷史被一股遠比諸神、遠比人類更古老的力量所支配——那就是<strong>上古巨龍(the Elder Dragons)</strong>。</p>
+    <p>上古巨龍並非尋常的猛獸,而是接近天地法則的存在:巨大、近乎不可理解,以世界的<em>魔力</em>本身為食。每隔約數千年,牠們便會從沉睡中甦醒一次,吞噬大地累積的魔力,將生靈腐化為自己的爪牙,待飽足後再度沉眠,留給世界漫長的喘息。這便是所謂的「<span class="term">巨龍循環(the Elder Dragon Cycle)</span>」。</p>
+    <p>提瑞亞有五個主要的可玩種族:驕傲善戰的貓族戰士 <span class="term">charr</span>、與自然之靈為伴的巨人 <span class="term">norn</span>、信奉六神的 <span class="term">人類</span>、痴迷於「永恆煉金術」的矮小天才 <span class="term">asura</span>,以及從一株「蒼白之樹(Pale Tree)」誕生、年輕而充滿理想的植物族 <span class="term">sylvari</span>。在巨龍的陰影下,這些彼此征戰已久的種族,終將被迫聯手。</p>
+    <p>故事始於上古巨龍再度甦醒之時。死亡之龍 <strong>Zhaitan</strong> 已經升起了沉沒的古老人類王國 <span class="term">Orr</span>,以無盡的不死軍團封鎖了海洋。世界站在崩潰的邊緣——而傳說,將從一位無名的冒險者開始。</p>
+    <div class="rule-orn"><span>編年始於 1325 AE</span></div>
+  </section>
+
+  <!-- ============ INDEX ============ -->
+  <nav class="index reveal">
+    <h2>章節 · Chronology</h2>
+    <div class="idx-grid">
+      <a class="idx-row" href="#e1" style="--era:#7BA05B"><span class="n">I</span><span class="t">沉沒之王<span class="en">The Sunken King · Zhaitan</span></span><span class="yr">1325 AE</span></a>
+      <a class="idx-row" href="#e2" style="--era:#C0392B"><span class="n">II</span><span class="t">猩紅之戰<span class="en">Scarlet's War</span></span><span class="yr">1326–1327 AE</span></a>
+      <a class="idx-row" href="#e3" style="--era:#CBA14C"><span class="n">III</span><span class="t">Glint 的預言<span class="en">Glint's Prophecy</span></span><span class="yr">1327 AE</span></a>
+      <a class="idx-row" href="#e4" style="--era:#94B83C"><span class="n">IV</span><span class="t">荊棘之心<span class="en">Heart of Thorns · Mordremoth</span></span><span class="yr">1328 AE</span></a>
+      <a class="idx-row" href="#e5" style="--era:#C77BBD"><span class="n">V</span><span class="t">血石與背棄之神<span class="en">Living World · Season 3</span></span><span class="yr">1329 AE</span></a>
+      <a class="idx-row" href="#e6" style="--era:#D9822F"><span class="n">VI</span><span class="t">烈焰之路<span class="en">Path of Fire · Balthazar</span></span><span class="yr">1330 AE</span></a>
+      <a class="idx-row" href="#e7" style="--era:#9E73D6"><span class="n">VII</span><span class="t">水晶巨龍的隕落<span class="en">Living World · Season 4 · Kralkatorrik</span></span><span class="yr">1330–1332 AE</span></a>
+      <a class="idx-row" href="#e8" style="--era:#5FA8D9"><span class="n">VIII</span><span class="t">寒火傳說<span class="en">The Icebrood Saga · Primordus & Jormag</span></span><span class="yr">1332–1335 AE</span></a>
+      <a class="idx-row" href="#e9" style="--era:#34BBA8"><span class="n">IX</span><span class="t">巨龍的終結<span class="en">End of Dragons · Soo-Won</span></span><span class="yr">1335 AE</span></a>
+      <a class="idx-row" href="#e10" style="--era:#C24A8E"><span class="n">X</span><span class="t">隱祕之祕<span class="en">Secrets of the Obscure · The Kryptis</span></span><span class="yr">1336 AE</span></a>
+      <a class="idx-row" href="#e11" style="--era:#C77B3E"><span class="n">XI</span><span class="t">Janthir 荒野<span class="en">Janthir Wilds · The Titans</span></span><span class="yr">1337 AE</span></a>
+      <a class="idx-row" href="#e12" style="--era:#46CFC8"><span class="n">XII</span><span class="t">永恆的幻象<span class="en">Visions of Eternity · Castora</span></span><span class="yr">1337 AE—</span></a>
+    </div>
+  </nav>
+
+  <!-- ============ I. ZHAITAN ============ -->
+  <section class="era" id="e1" style="--accent:#7BA05B;--accent-2:#3E5C46">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第一章</div>
+        <h2 class="era-title">沉沒之王</h2>
+        <div class="era-en">The Sunken King · Zhaitan</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1325 AE</dd></div>
+          <div><dt>地區</dt><dd>提瑞亞中部 · Orr</dd></div>
+          <div><dt>威脅</dt><dd><b>Zhaitan</b> 死亡之龍</dd></div>
+          <div><dt>結局</dt><dd>第一頭上古巨龍隕落</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">在巨龍甦醒前的兩百五十年,提瑞亞曾有過一段截然不同的英雄時代。但當 <span class="term">Zhaitan</span> 甦醒,牠將沉入海底千年的古國 Orr 連同其亡魂一同升起,化為腐臭的「<span class="term">Risen</span>」不死大軍,封鎖了航路,讓恐懼籠罩每一塊海岸。</p>
+        <p>故事的主角,是一位來自五大種族之一的無名冒險者。無論出身為何,命運都將他引向同一條路:加入對抗巨龍的三大組織之一——軍事同盟 <span class="term">Vigil</span>、學者結社 <span class="term">Durmand Priory</span>,或情報網絡 <span class="term">Order of Whispers</span>——並最終匯流成一支跨種族的聯合軍。</p>
+        <p>在這段旅程中,主角試圖重組一個破碎的傳奇:<strong>Destiny's Edge</strong>。這支公會曾集結各族最強的英雄——charr 的 <em>Rytlock</em>、norn 的 <em>Eir</em>、人類的 <em>Logan</em>、asura 的 <em>Zojja</em>、sylvari 的 <em>Caithe</em>,以及他們的巨龍盟友、水晶之龍 <em>Glint</em>。然而在一場對抗另一頭巨龍 Kralkatorrik 的戰役中,Glint 戰死、Logan 為守護人類女王臨陣離隊,公會在悲傷與互相指責中分崩離析。</p>
+
+        <h3>淨化 Orr 的天命</h3>
+        <p>串連起這一切的,是一位特殊的 sylvari——<strong>Trahearne</strong>,蒼白之樹最早誕生的「初生者(Firstborn)」之一。他背負著一個與生俱來的「荒野天命(Wyld Hunt)」:淨化被 Zhaitan 腐化的 Orr。在主角協助下,離散的英雄們重新並肩,各族軍隊整合為單一的軍事力量——<span class="term">the Pact</span>(聖約聯軍)。</p>
+        <p>聯軍向 Orr 發動總攻。在腐土與不死浪潮中血戰之後,主角登上飛空艇,直面盤旋於 Orr 上空的 Zhaitan 本體。隨著這頭巨大的死亡之龍墜落,提瑞亞迎來了第一場真正的勝利——而主角,從此被冠以「<strong>指揮官(Commander)</strong>」之名。</p>
+        <blockquote>第一頭上古巨龍倒下了。世界以為,黎明終於到來。<cite>Orr 戰役之後</cite></blockquote>
+        <p>但這只是漫長循環的開端。Zhaitan 之死釋放出的龐大魔力並未消散——它必須流向某處。而在 Maguuma 叢林深處,有什麼,正因此而騷動。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ II. SCARLET ============ -->
+  <section class="era" id="e2" style="--accent:#C0392B;--accent-2:#7A2018">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第二章 · 生活世界 第一季</div>
+        <h2 class="era-title">猩紅之戰</h2>
+        <div class="era-en">Scarlet's War · Living World Season 1</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1326–1327 AE</dd></div>
+          <div><dt>地區</dt><dd>Kryta · Lion's Arch</dd></div>
+          <div><dt>威脅</dt><dd><b>Scarlet Briar</b> 與她的同盟</dd></div>
+          <div><dt>結局</dt><dd>Lion's Arch 陷落,叢林之龍甦醒</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">勝利的餘溫尚未散去,一個新的、難以理解的威脅便浮現了——一名瘋狂的 sylvari,<strong>Scarlet Briar</strong>。她原名 Ceara,曾是聰慧過人的學者,遍訪各族鑽研工程、魔法與哲學,卻在窺見了世界的終極真相後徹底失常。</p>
+        <p>Scarlet 利用她的天才,煽動並結合了一個又一個敵對勢力:空中海盜 <span class="term">Aetherblades</span>、由 dredge 與 Flame Legion 組成的 <span class="term">Molten Alliance</span>、以及 Nightmare Court 與 krait 聯手的 <span class="term">Toxic Alliance</span>。一連串看似毫無關聯的襲擊席捲提瑞亞,沒人能看穿她真正的意圖。</p>
+
+        <h3>獅子拱門的陷落</h3>
+        <p>真相在一場浩劫中揭曉。Scarlet 駕著巨大的鑽掘機械「Breachmaker」直擊提瑞亞最繁華的自由港——<span class="term">Lion's Arch</span>。這座象徵各族交融的城市在烈焰與毒氣中傾頹,無數居民喪生,成為整個世代揮之不去的傷痕。</p>
+        <p>主角與盟友最終擊殺了 Scarlet,卻在她臨終的笑容中讀懂了一切:這場毀滅從不是目的。她的鑽頭精準地刺穿了 Lion's Arch 地底交匯的<em>魔力脈絡(ley line)</em>節點——而那股迸發的能量,正是為了喚醒沉睡的叢林與心智之龍。</p>
+        <blockquote>她要的從來不是這座城。她要的,是讓某個更古老的東西,睜開眼睛。<cite>Scarlet Briar 之死</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ III. GLINT'S PROPHECY ============ -->
+  <section class="era" id="e3" style="--accent:#CBA14C;--accent-2:#7E6526">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第三章 · 生活世界 第二季</div>
+        <h2 class="era-title">Glint 的預言</h2>
+        <div class="era-en">Glint's Prophecy · Living World Season 2</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1327 AE</dd></div>
+          <div><dt>地區</dt><dd>Maguuma 邊境 · Dry Top · Silverwastes</dd></div>
+          <div><dt>威脅</dt><dd><b>Mordremoth</b> 甦醒</dd></div>
+          <div><dt>結局</dt><dd>Glint 的遺產龍蛋被守護</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">叢林之龍 <strong>Mordremoth</strong> 的甦醒帶來了立即的危機。牠的爪牙「Mordrem」自大地竄出,而真正令人膽寒的是:由蒼白之樹誕生的 sylvari,其根源竟與這頭巨龍相連——Mordremoth 能潛入他們的夢境,低語、誘惑、操控。</p>
+        <p>主角身邊聚起了新一代的夥伴:嚴肅的占卜師 <em>Marjory</em>、優雅的貴族法師 <em>Kasmeer</em>、流亡的 charr <em>Rox</em>、年輕氣盛的 norn <em>Braham</em>,以及坐著輪椅、卻擁有全提瑞亞最聰明頭腦的 asura 少女 <em>Taimi</em>。</p>
+
+        <h3>窺見永恆煉金術</h3>
+        <p>透過一台名為 Omadd 的機器,主角親身進入了那個曾讓 Scarlet 發狂的幻象,看見了世界運轉的真相:<strong>上古巨龍是世界魔力的調節者</strong>。若將牠們全數殺盡,失衡的魔力可能反噬整個提瑞亞。同時,主角也得知了水晶之龍 <span class="term">Glint</span> 留下的遺產——一枚承載著「打破循環」希望的龍蛋。</p>
+        <p>Glint 曾是 Kralkatorrik 的爪牙,卻掙脫了束縛,以數百年時間策劃一個能終結巨龍暴政的「預言」。如今她已逝,但那枚蛋,可能孕育出一頭<em>不一樣的</em>巨龍。Destiny's Edge 的 Caithe 帶著龍蛋遁入兇險的叢林深處,而主角必須在 Mordremoth 的爪牙奪走它之前追上。一場深入叢林的遠征,就此拉開序幕。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ IV. HEART OF THORNS ============ -->
+  <section class="era" id="e4" style="--accent:#94B83C;--accent-2:#4E6B1E">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第四章 · 資料片</div>
+        <h2 class="era-title">荊棘之心</h2>
+        <div class="era-en">Heart of Thorns · Mordremoth</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1328 AE</dd></div>
+          <div><dt>地區</dt><dd>Heart of Maguuma 叢林</dd></div>
+          <div><dt>威脅</dt><dd><b>Mordremoth</b> 叢林與心智之龍</dd></div>
+          <div><dt>結局</dt><dd>第二頭巨龍隕落 · Aurene 誕生</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">聖約聯軍傾巢而出,駕著龐大的飛空艇艦隊衝入 Maguuma 叢林,意圖一舉摧毀 Mordremoth。然而牠對 sylvari 心智的支配遠超想像——在叢林上空,整支艦隊被瞬間瓦解,墜入這片吞噬一切的綠色地獄。</p>
+        <p>倖存者散落在層層疊疊的叢林中。在這裡,主角結識了從未接觸過的古老族群:棲身樹冠的 <span class="term">Itzel</span>、為守護 Glint 遺產而被光輝轉化的 <span class="term">Exalted</span>、以及智慧的蛙人 <span class="term">Nuhoch</span>。也是在這裡,失蹤已久的 Rytlock 自迷霧歸來,手持重鑄的烈焰之劍 Sohothin,帶回了關於巨龍與迷霧的祕密。</p>
+
+        <h3>新生的曙光</h3>
+        <p>在黃金之城 <span class="term">Tarir</span>,Glint 的遺產龍蛋終於孵化。一頭通體如水晶般折射出七彩光芒的幼龍睜開了眼——她是 <strong>Aurene</strong>。她與指揮官之間瞬間結成了一道無法切斷的靈魂羈絆。一個截然不同的巨龍,第一次站在了人類這一邊。</p>
+
+        <h3>叢林深處的犧牲</h3>
+        <p>但勝利的代價慘烈。Mordremoth 攻陷了蒼白之樹的防線,將 Trahearne——那位淨化 Orr 的英雄——擄走並徹底腐化。主角必須在兩條戰線同時作戰:在現實中擊潰巨龍的軀體,在夢境中粉碎牠的意志。Mordremoth 終於倒下。</p>
+        <p>然而 Trahearne 已被腐化到無法挽回。在叢林的廢墟之中,主角與 Caithe 不得不親手,以 Caithe 的匕首,結束這位摯友的生命。</p>
+        <blockquote>有些勝利,不會讓你歡呼。它只會在你心上,留下一道永遠不會癒合的疤。<cite>Trahearne 之死</cite></blockquote>
+        <p>Mordremoth 之死再次釋放出海量魔力。這股力量被四散吸收,部分湧入了古老的「血石(Bloodstone)」,也讓沉睡的其餘巨龍蠢蠢欲動。而幼龍 Aurene,正一天天長大。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ V. LWS3 ============ -->
+  <section class="era" id="e5" style="--accent:#C77BBD;--accent-2:#7A3E72">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第五章 · 生活世界 第三季</div>
+        <h2 class="era-title">血石與背棄之神</h2>
+        <div class="era-en">Living World Season 3</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1329 AE</dd></div>
+          <div><dt>地區</dt><dd>Kryta · Bloodstone Fen · Bitterfrost</dd></div>
+          <div><dt>威脅</dt><dd>White Mantle · <b>Balthazar</b></dd></div>
+          <div><dt>結局</dt><dd>戰神的陰謀浮現</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">Mordremoth 死後溢出的魔力讓古老的血石爆裂,引發新的災厄。與此同時,一個本應滅絕的古老種族——傲慢的 <span class="term">mursaat</span>——似乎重現於世,而崇拜他們的邪教 <span class="term">White Mantle</span> 在野心家 <em>Caudecus</em> 的策動下,密謀奪取人類王國 Kryta 的王座。</p>
+        <p>隨著陰謀層層揭開,一個驚人的真相浮現:那名自稱 mursaat 的存在,實則是被放逐的人類戰神——<strong>Balthazar</strong>。六神早已離開提瑞亞,而這位戰爭與烈焰之神,正懷著瘋狂的計畫潛回人間。</p>
+
+        <h3>失衡的天秤</h3>
+        <p>聰慧的 Taimi 透過研究證實了那個令人不安的猜想:<strong>上古巨龍維繫著世界魔力的平衡</strong>。每殺死一頭,失衡的魔力都必須有所歸宿,否則世界本身將承受反噬。而此刻,火焰之龍 <span class="term">Primordus</span> 與寒冰之龍 <span class="term">Jormag</span> 正在沉睡中翻身。Balthazar 的目標逐漸清晰——他要獵殺一頭巨龍,奪取其神話般的力量。被他鎖定的,是仍盤踞在水晶沙漠、被放逐的水晶之龍 Kralkatorrik。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VI. PATH OF FIRE ============ -->
+  <section class="era" id="e6" style="--accent:#D9822F;--accent-2:#8A4E16">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第六章 · 資料片</div>
+        <h2 class="era-title">烈焰之路</h2>
+        <div class="era-en">Path of Fire · Balthazar</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1330 AE</dd></div>
+          <div><dt>地區</dt><dd>Crystal Desert · Elona</dd></div>
+          <div><dt>威脅</dt><dd>戰神 <b>Balthazar</b> · 巫王 Palawa Joko</dd></div>
+          <div><dt>結局</dt><dd>戰神殞落,Kralkatorrik 完全甦醒</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">為了阻止 Balthazar,指揮官追擊至廣袤的 <span class="term">Crystal Desert</span> 與南方的故土 <span class="term">Elona</span>。這片土地如今籠罩在另一個暴君的陰影下——不死的巫王 <strong>Palawa Joko</strong>,他在過去兩百年間以亡靈大軍征服並統治了整個 Elona。</p>
+        <p>也正是在這趟旅程中,提瑞亞的英雄們學會了與各種<em>坐騎</em>並肩馳騁:善跳的迅猛龍 raptor、彈躍的 springer、滑行於沙海的 skimmer、能瞬閃的 jackal,以及翱翔天際的 griffon。荒漠不再是無法跨越的天塹。</p>
+
+        <h3>神祇的執念</h3>
+        <p>Balthazar 擄走了 Aurene,企圖利用她。指揮官與成長中的 Aurene 聯手,在 Kralkatorrik 的注視下與戰神決一死戰。Balthazar 終究殞落——但這正中了某種更黑暗的算計。</p>
+        <p>戰神之死釋放的滔天神力,如洪流般灌入沉睡的 Kralkatorrik 體內。這頭水晶與虛空之龍徹底甦醒、振翅升空,牠飛過之處,天空裂開通往迷霧的縫隙,大地被「烙印(the Brand)」化為扭曲的水晶廢土。一個遠比 Balthazar 更古老的災難,就此掙脫了束縛。</p>
+        <blockquote>我們解決了一位墮落的神。可我們親手,放出了一頭真正的巨龍。<cite>Balthazar 之死</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VII. LWS4 ============ -->
+  <section class="era" id="e7" style="--accent:#9E73D6;--accent-2:#5A3A86">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第七章 · 生活世界 第四季</div>
+        <h2 class="era-title">水晶巨龍的隕落</h2>
+        <div class="era-en">Living World Season 4 · Kralkatorrik</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1330–1332 AE</dd></div>
+          <div><dt>地區</dt><dd>Istan · Kourna · Jahai · 迷霧</dd></div>
+          <div><dt>威脅</dt><dd><b>Kralkatorrik</b> 水晶之龍 · 巫王 Joko</dd></div>
+          <div><dt>結局</dt><dd>Aurene 升格為上古巨龍</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">追擊 Kralkatorrik 的長征中,巫王 Palawa Joko 也終於攤牌,企圖以瘟疫與亡靈大軍掌控全局。在一場決定性的對決裡,已然成長為強大存在的 Aurene 將這位稱霸兩百年的暴君徹底焚滅——<strong>Joko 之死,為 Elona 帶來了兩個世紀以來的第一道自由曙光</strong>。</p>
+        <p>然而真正的夢魘仍在天際盤旋。Kralkatorrik 遁入迷霧,在現實與虛空之間留下毀滅的烙印風暴。指揮官與 Aurene 一路追擊,直到那命運的一刻。</p>
+
+        <h3>羈絆斷裂之時</h3>
+        <p>在迷霧的戰場上,Kralkatorrik 將 Aurene——指揮官靈魂的另一半——擊殺。她的軀體碎裂成水晶,那道貫穿兩人生命的羈絆,在指揮官胸口生生扯斷。這是整個世代最沉痛的一擊。</p>
+        <blockquote>當她墜落的那一刻,我感覺自己也死了一半。<cite>Aurene 之死 · All or Nothing</cite></blockquote>
+        <p>但希望沒有熄滅。在盟友、在無數逝者靈魂、也在那道未曾真正斷絕的羈絆牽引下,Aurene 於迷霧深處<strong>重生</strong>——以更耀眼、更強大的姿態歸來。在名為 <span class="term">Dragonfall</span> 的終局之戰中,指揮官、Aurene 與整個提瑞亞的盟友合力,將 Kralkatorrik 徹底擊碎。</p>
+        <p>隨著水晶之龍的隕落,Aurene 吸納了 Zhaitan、Mordremoth、Kralkatorrik 乃至 Balthazar 的力量,正式<strong>升格為一頭完整的上古巨龍</strong>。她成為提瑞亞歷史上第一頭仁慈的巨龍——一座折射魔力、維繫平衡的「稜鏡」。循環,第一次出現了被打破的可能。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIII. ICEBROOD SAGA ============ -->
+  <section class="era" id="e8" style="--accent:#5FA8D9;--accent-2:#2F5E80">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第八章 · 生活世界 第五季</div>
+        <h2 class="era-title">寒火傳說</h2>
+        <div class="era-en">The Icebrood Saga · Primordus & Jormag</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1332–1335 AE</dd></div>
+          <div><dt>地區</dt><dd>Shiverpeaks · Drizzlewood Coast</dd></div>
+          <div><dt>威脅</dt><dd><b>Jormag</b> 寒冰之龍 · <b>Primordus</b> 火焰之龍</dd></div>
+          <div><dt>結局</dt><dd>雙龍對峙,危機指向遙遠的 Cantha</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">如今只剩兩頭主要的上古巨龍尚存,而牠們恰是彼此的死敵:毀滅與火焰的 <strong>Primordus</strong>,以及寒冰與低語的 <strong>Jormag</strong>。古老的傳說警告:這對宿敵一旦正面相撞,釋放的力量足以撕裂整個世界。</p>
+        <p>戰火首先在 charr 之間點燃。野心勃勃的 <em>Bangar Ruinbringer</em> 煽動叛亂,妄想馴服 Jormag 之力,以贏得對人類千年的戰爭;而夾在忠誠與血緣之間的,是他的義子、charr 戰士 <em>Ryland</em>。脆弱的人類—charr 和平條約,危在旦夕。</p>
+
+        <h3>低語的巨龍</h3>
+        <p>Jormag 展現出與其他巨龍截然不同的恐怖——牠不靠蠻力,而靠<em>言語</em>。牠耐心地低語、誘惑、扮演「必要之惡」,聲稱唯有自己能阻止 Primordus 毀滅世界,試圖讓提瑞亞的英雄們相信:與龍結盟,才是唯一的活路。norn 戰士 <em>Braham</em> 則背負著「弒龍者」的預言,在魯莽與成長之間掙扎。</p>
+        <p>在名為「Champions」的終章,壓抑已久的衝突終於爆發,Primordus 與 Jormag 雙雙崛起,走向彼此。然而這場對決並未真正了結——它被懸置了。指揮官與 Aurene 意識到,終結這一切的關鍵,藏在一個封閉了兩百五十年的古老帝國,以及沉睡於其海底的最後一頭巨龍身上。所有的線索,都指向了東方的 <span class="term">Cantha</span>。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ IX. END OF DRAGONS ============ -->
+  <section class="era" id="e9" style="--accent:#34BBA8;--accent-2:#1B6B60">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第九章 · 資料片</div>
+        <h2 class="era-title">巨龍的終結</h2>
+        <div class="era-en">End of Dragons · Soo-Won</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1335 AE</dd></div>
+          <div><dt>地區</dt><dd>Cantha · New Kaineng · Dragon's End</dd></div>
+          <div><dt>威脅</dt><dd><b>Soo-Won</b> 海洋與生命之龍</dd></div>
+          <div><dt>結局</dt><dd>巨龍循環終結,Aurene 成為唯一之龍</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">封閉了兩個半世紀的龍之帝國 <strong>Cantha</strong>,終於重新向世界敞開。這是一片與提瑞亞大陸截然不同的土地:摩天的霓虹巨城 <span class="term">New Kaineng</span>、由古老「翡翠之風」凝結而成的 <em>龍玉(Dragonjade)</em> 所驅動的精巧科技,以及繁複而陌生的宮廷與派系。</p>
+        <p>指揮官捲入了帝國的暗流:神祕的空中海盜 <span class="term">Aetherblades</span>、其首領 <em>Mai Trin</em> 與幕後黑手 <em>Ankka</em>、把持權柄的安全部,以及形形色色的 Canthan 新夥伴。但這一切政治角力之下,真正的危機正在逼近——Primordus 與 Jormag 的宿命之戰被引向了 Cantha,而帝國海底,沉睡著海洋與生命之龍 <strong>Soo-Won</strong>,牠正是龍玉與翡翠之風的源頭。</p>
+
+        <h3>循環的盡頭</h3>
+        <p>一個終結巨龍循環的計畫成形。在慘烈的戰鬥中,Primordus 與 Jormag 雙雙被終結——包括與 Primordus 結合、最終走向毀滅的 Ryland。然而,本應吸收這股失衡魔力的 Soo-Won 卻被逼至瘋狂,化為一頭如天災般的巨獸,於 <span class="term">Dragon's End</span> 掀起滔天巨浪。</p>
+        <p>在這場提瑞亞史上規模最浩大的決戰中,指揮官與來自世界各地的盟友,終於擊敗了暴走的 Soo-Won。隨著最後一頭舊時代的上古巨龍隕落,並由 Aurene 一肩扛起所有魔力的平衡——<strong>延續了無數紀元的巨龍循環,正式畫下句點</strong>。</p>
+        <blockquote>巨龍的時代結束了。從今往後,提瑞亞的命運,將第一次真正掌握在牠自己的子民手中。<cite>巨龍循環之終結</cite></blockquote>
+        <p>Aurene 成為這個世界唯一的上古巨龍——「<span class="term">The One</span>」,獨自折射並調和著天地間所有的魔力。追隨了整整十年的史詩,在此圓滿落幕。然而,一個沒有巨龍的世界,也意味著舊有的秩序與守護,將開始鬆動。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ X. SECRETS OF THE OBSCURE ============ -->
+  <section class="era" id="e10" style="--accent:#C24A8E;--accent-2:#7A2A58">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第十章 · 資料片</div>
+        <h2 class="era-title">隱祕之祕</h2>
+        <div class="era-en">Secrets of the Obscure · The Kryptis</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1336 AE</dd></div>
+          <div><dt>地區</dt><dd>Skywatch Archipelago · Amnytas · Inner Nayos</dd></div>
+          <div><dt>威脅</dt><dd><b>Kryptis</b> 惡魔大軍 · 午夜之王 Eparch</dd></div>
+          <div><dt>結局</dt><dd>Nayos 暴君覆滅,Peitha 登位</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">巨龍循環終結後,完成使命的 Aurene 陷入沉睡,將守護世界的重任託付給指揮官。就在這片難得的寧靜中,異變發生了——盤旋於小鎮 Garenhoff 上空數百年、傳說中的「<span class="term">巫師之塔(Wizard's Tower)</span>」,毫無徵兆地憑空消失。</p>
+        <p>緊接著,來自<em>迷霧</em>彼端的惡魔種族 <strong>Kryptis</strong>,撕開一道道裂隙湧入提瑞亞,目標直指人間,以及高懸天際的浮空領域 <span class="term">Amnytas</span>。</p>
+
+        <h3>守望者現身</h3>
+        <p>危機之中,一個守護世界數千年的祕密組織終於走入世人眼前:<span class="term">巫師宮廷(Wizard's Court)</span> 與其武裝 <span class="term">Astral Ward</span>。領導他們的,是行事隱晦的古老巫師 <em>Isgarren</em>。久未露面的 asura 學者 <em>Zojja</em> 也在此回歸,並肩作戰的還有 norn 的 <em>Frode</em>、一位顛覆了舊日反派形象的「善良 mursaat」巫師 <em>Mabon</em>,以及最出人意料的盟友——一頭背叛了同族暴君的 Kryptis,「嘲弄惡魔」<em>Peitha</em>。</p>
+        <p>指揮官手持由 kodan 巫師「Waiting Sorrow」打造的神器 <span class="term">Heart of the Obscure</span>,封閉裂隙、深入 Kryptis 的母國 <span class="term">Inner Nayos</span>。最終的對手,是以情感與精魄為食的暴君——「<strong>午夜之王 Eparch</strong>」。在這場戰役中,Mabon 為守護眾人壯烈犧牲;而在指揮官與 Peitha 的聯手下,Eparch 終被推翻,Peitha 登上王座,成為 Kryptis 的新統治者。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ XI. JANTHIR WILDS ============ -->
+  <section class="era" id="e11" style="--accent:#C77B3E;--accent-2:#7E4A20">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第十一章 · 資料片</div>
+        <h2 class="era-title">Janthir 荒野</h2>
+        <div class="era-en">Janthir Wilds · The Titans</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1337 AE</dd></div>
+          <div><dt>地區</dt><dd>Isles of Janthir · Lowland Shore · Bava Nisos</dd></div>
+          <div><dt>威脅</dt><dd>泰坦 <b>Greer</b> 與 <b>Decima</b></dd></div>
+          <div><dt>結局</dt><dd>迷霧之門的祕密揭開</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">接連的危機,促使提瑞亞各國摒棄前嫌,組成「<span class="term">Tyrian Alliance</span>」。指揮官則接下了新的頭銜——「<strong>Wayfinder</strong>」。為了鞏固這個新生的同盟,他踏上了傳說中的群島 <span class="term">Isles of Janthir</span>。</p>
+        <p>這片佈滿 mursaat 古老遺跡、險惡難行的土地,對多數提瑞亞人而言只是遙遠的傳說;它一直由 Astral Ward 的巫師們默默看守。Wayfinder 的任務,是與棲居於此的「低地 kodan(lowland kodan)」結為盟友。</p>
+
+        <h3>泰坦歸來</h3>
+        <p>然而 Janthir 潛藏著一個源自遠古的威脅——<strong>泰坦(Titans)</strong> 捲土重來。冷酷算計的「枯萎使者」<em>Greer the Blightbringer</em> 與魯莽狂暴的「風暴歌者」<em>Decima the Stormsinger</em>,正將腐化的「枯萎(blight)」自 Janthir 蔓延向大陸,為同族開闢灘頭。與此同時,失蹤兩百年、打造了 Heart of the Obscure 的神祕 kodan「Waiting Sorrow」也藏身於此,而她真正的立場,始終成謎。</p>
+        <p>隨著真相層層剝開,一條更深的線索浮現:在 mursaat 古城 <span class="term">Bava Nisos</span> 深處,藏著一道被 Mabon 生前以結界封印的「<em>迷霧之門</em>」。隨著 Mabon 殞落,結界也隨之崩解。在更多泰坦——乃至更可怕的東西——自門後湧出之前,找到並封閉這道門,成了刻不容緩的當務之急。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ XII. VISIONS OF ETERNITY ============ -->
+  <section class="era" id="e12" style="--accent:#46CFC8;--accent-2:#226E6A">
+    <div class="era-inner">
+      <div class="era-head reveal">
+        <div class="era-num">第十二章 · 資料片 · 進行中</div>
+        <h2 class="era-title">永恆的幻象</h2>
+        <div class="era-en">Visions of Eternity · Castora</div>
+        <dl class="meta">
+          <div><dt>年代</dt><dd>1337 AE —</dd></div>
+          <div><dt>地區</dt><dd>Castora · Shipwreck Strand · Starlit Weald</dd></div>
+          <div><dt>威脅</dt><dd>asura 邪科學結社 <b>Inquest</b></dd></div>
+          <div><dt>結局</dt><dd>故事仍在書寫中</dd></div>
+        </dl>
+      </div>
+      <div class="era-body reveal">
+        <p class="first">最新的篇章,始於一則在提瑞亞各地流傳的耳語:惡名昭彰的 asura 邪科學結社 <span class="term">Inquest</span>,正祕密派出船隊,駛向一座遙遠到被認為根本無法抵達、甚至從不存在的島嶼——<strong>Castora</strong>。</p>
+        <p>傳說這座島嶼蘊藏著濃烈到足以扭曲一切的原始魔力,當地的生靈與草木皆因此變得詭譎難測。Tyrian Alliance 察覺到 Inquest 圖謀的,正是這股力量。指揮官橫越兩片全新的奇異之地——遍佈殘骸的 <span class="term">Shipwreck Strand</span> 與星光籠罩的 <span class="term">Starlit Weald</span>——只為趕在這群瘋狂學者釀成大禍之前,揭穿他們的陰謀。</p>
+        <p>這場冒險將分為多個篇章,自 1337 AE 起持續展開。Castora 的真相、Inquest 的最終目的,以及這座島嶼將為提瑞亞帶來什麼——這一切,目前都仍是未完待續的故事。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EPILOGUE ============ -->
+  <section class="epilogue reveal">
+    <p class="eyebrow">尾聲</p>
+    <h2>巨龍已逝,世界長存</h2>
+    <p>從第一頭巨龍自 Orr 升起,到最後一頭於 Cantha 海底隕落,提瑞亞用了整整一個世代,終結了支配世界無數紀元的古老循環。</p>
+    <p>然而沒有巨龍的天空,並不意味著太平。迷霧彼端的惡魔、沉睡甦醒的泰坦、扭曲魔力的孤島——當舊神話落幕,新的傳說便接續寫下。提瑞亞的故事,從來不曾真正結束。</p>
+    <div class="prism"></div>
+  </section>
+
+  <footer>
+    提瑞亞編年史 · The Chronicle of Tyria<br>
+    記事截至 <b>Castora 篇章 · 1337 AE</b><br>
+    輯錄自提瑞亞世界之傳承
+  </footer>
+
+</div>
+
+<script>
+  // ley line progress
+  const ley = document.getElementById('ley');
+  const onScroll = () => {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const p = h > 0 ? (window.scrollY / h) * 100 : 0;
+    ley.style.width = p + '%';
+  };
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // reveal on scroll
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+  }
+</script>
+</body>
+</html>
