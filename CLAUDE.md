@@ -46,3 +46,10 @@ served via GitHub Pages.
    there is no `SPEC.md` to maintain.
 3. Share the item's `/<item>/` URL directly with whoever needs it. Nothing links
    to it, so it is only reachable by that URL.
+
+Optional — rich link previews (Discord / Slack / X): add Open Graph + Twitter Card
+tags plus a 1200×630 `og.png` in the item's own directory. `og:image` and `og:url`
+must be **absolute** URLs — this repo is served at `https://lab.howar31.com/share/`
+(account-level custom domain, no per-repo `CNAME`), so e.g.
+`https://lab.howar31.com/share/<item>/og.png`. Previews only resolve once deployed,
+and consumers cache aggressively. See `gw2/` for a worked example.
