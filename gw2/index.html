@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提瑞亞文庫 · The Archives of Tyria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=Barlow+Condensed:wght@400;500;600&family=Noto+Serif+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#080A12;
+    --void-2:#0E1119;
+    --void-3:#141826;
+    --ink:#E9E5DA;
+    --ink-dim:#9D978A;
+    --ink-faint:#6A6559;
+    --gold:#C6A867;
+    --gold-dim:#8E7A47;
+    --line:rgba(198,168,103,0.16);
+    --aur-cyan:#54CFE0;
+    --aur-violet:#9E73D6;
+    --aur-gold:#E2B860;
+    --serif-disp:"Cormorant Garamond","Noto Serif TC",serif;
+    --serif-body:"Spectral","Noto Serif TC",serif;
+    --cond:"Barlow Condensed",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--void); color:var(--ink);
+    font-family:var(--serif-body); line-height:1.7; font-size:17px;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  /* starfield, shared with the sibling volumes */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.32), transparent),
+      radial-gradient(1px 1px at 70% 12%, rgba(255,255,255,.24), transparent),
+      radial-gradient(1px 1px at 85% 64%, rgba(255,255,255,.28), transparent),
+      radial-gradient(1px 1px at 38% 80%, rgba(255,255,255,.18), transparent),
+      radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,.16), transparent),
+      radial-gradient(1px 1px at 12% 68%, rgba(255,255,255,.20), transparent);
+    background-repeat:no-repeat;
+  }
+  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 22px;}
+
+  /* ================= HERO ================= */
+  .hero{text-align:center; padding:13vh 0 4vh; position:relative;}
+  .hero-glow{
+    position:absolute; top:34%; left:50%; transform:translate(-50%,-50%);
+    width:min(680px,108vw); aspect-ratio:1; pointer-events:none;
+    background:radial-gradient(circle, rgba(84,207,224,.11), rgba(158,115,214,.09) 40%, transparent 66%);
+    filter:blur(8px);
+  }
+  .sigil{
+    width:min(150px,38vw); height:min(150px,38vw); margin:0 auto 30px;
+    position:relative; animation:breathe 9s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{transform:scale(1) rotate(0deg);opacity:.96;}50%{transform:scale(1.035) rotate(.5deg);opacity:1;}}
+  .sigil svg{width:100%; height:100%; overflow:visible;}
+  .eyebrow{font-family:var(--cond); text-transform:uppercase; letter-spacing:.46em; font-size:.78rem; color:var(--gold); margin:0 0 18px; padding-left:.46em; font-weight:500;}
+  h1{
+    font-family:var(--serif-disp); font-weight:600; font-size:clamp(2.8rem,8.4vw,5.2rem);
+    line-height:.98; margin:0; letter-spacing:.015em;
+    background:linear-gradient(180deg,#fbf7ec 0%, #e7dcc2 58%, #b79c64 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  h1 .sub{
+    display:block; font-family:var(--serif-disp); font-style:italic; font-weight:500;
+    font-size:clamp(1rem,3vw,1.7rem); letter-spacing:.1em; margin-top:.5em;
+    color:var(--aur-cyan); -webkit-text-fill-color:var(--aur-cyan); opacity:.9;
+  }
+  .standfirst{max-width:52ch; margin:30px auto 0; color:var(--ink-dim); font-weight:300; font-size:1.04rem; line-height:1.85;}
+
+  /* dispersion line — the prism splits white light into the volumes' accents */
+  .dispersion{
+    width:min(360px,72vw); height:1px; margin:38px auto 6px;
+    background:linear-gradient(90deg,transparent,var(--aur-cyan) 22%,var(--aur-violet) 52%,var(--aur-gold) 80%,transparent);
+    opacity:.85;
+  }
+  .count{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.34em;
+    font-size:.74rem; color:var(--ink-faint); margin-top:14px;
+  }
+  .count b{color:var(--gold); font-weight:600;}
+
+  /* ================= VOLUMES ================= */
+  .shelf{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:18px; margin:6vh 0 4vh;
+  }
+  .vol{
+    position:relative; display:flex; flex-direction:column; text-decoration:none; color:inherit;
+    background:linear-gradient(165deg,var(--void-2),var(--void));
+    border:1px solid var(--line); border-radius:3px; overflow:hidden;
+    padding:26px 24px 22px;
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+  }
+  /* the accent band: one color drawn out of the dispersion above */
+  .vol::before{
+    content:""; position:absolute; left:0; right:0; top:0; height:3px;
+    background:linear-gradient(90deg,var(--accent),transparent 88%);
+    opacity:.85; transition:opacity .3s, height .3s;
+  }
+  .vol:hover,.vol:focus-visible{
+    transform:translateY(-5px);
+    border-color:color-mix(in srgb, var(--accent) 42%, var(--line));
+    box-shadow:0 18px 44px -22px var(--accent);
+    outline:none;
+  }
+  .vol:hover::before,.vol:focus-visible::before{opacity:1; height:4px;}
+  .vol:focus-visible{box-shadow:0 0 0 2px var(--accent), 0 18px 44px -22px var(--accent);}
+
+  .vol-cat{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.28em;
+    font-size:.72rem; font-weight:600; color:var(--accent); margin-bottom:16px;
+    display:flex; align-items:center; gap:11px;
+  }
+  .vol-cat::before{content:""; width:22px; height:1px; background:var(--accent); opacity:.7;}
+  .vol-title{
+    font-family:var(--serif-disp); font-weight:600; font-size:1.92rem; line-height:1.06;
+    margin:0; color:#f3eedf; letter-spacing:.01em;
+  }
+  .vol-en{
+    display:block; font-family:var(--cond); text-transform:uppercase; letter-spacing:.2em;
+    font-size:.78rem; color:var(--ink-faint); margin-top:7px; font-weight:500;
+  }
+  .vol-meta{
+    font-family:var(--cond); letter-spacing:.06em; font-size:.92rem; color:var(--ink-dim);
+    margin:16px 0 0; padding-top:14px; border-top:1px solid var(--line);
+  }
+  .vol-blurb{margin:13px 0 0; color:var(--ink-dim); font-size:.96rem; font-weight:300; line-height:1.68;}
+  .vol-go{
+    margin-top:20px; font-family:var(--cond); text-transform:uppercase; letter-spacing:.18em;
+    font-size:.8rem; font-weight:600; color:var(--accent);
+    display:flex; align-items:center; gap:9px;
+  }
+  .vol-go .arr{transition:transform .3s ease;}
+  .vol:hover .vol-go .arr,.vol:focus-visible .vol-go .arr{transform:translateX(6px);}
+
+  /* staggered load reveal */
+  .vol{opacity:0; transform:translateY(20px);}
+  .vol.in{opacity:1; transform:none; transition:opacity .8s ease, transform .8s ease; transition-delay:calc(var(--i) * .09s);}
+
+  .empty{
+    grid-column:1/-1; text-align:center; color:var(--ink-faint);
+    font-family:var(--cond); letter-spacing:.16em; text-transform:uppercase; padding:6vh 0;
+  }
+
+  /* ================= RELATED (external) ================= */
+  .related{text-align:center; margin:7vh 0 0;}
+  .related-head{
+    font-family:var(--cond); text-transform:uppercase; letter-spacing:.32em;
+    font-size:.74rem; color:var(--ink-faint); margin:0 0 20px;
+    display:flex; align-items:center; justify-content:center; gap:16px;
+  }
+  .related-head::before,.related-head::after{content:""; height:1px; flex:0 1 90px; background:linear-gradient(90deg,transparent,var(--line),transparent);}
+  .links{display:flex; flex-wrap:wrap; gap:12px; justify-content:center;}
+  .link-row{
+    display:inline-flex; align-items:center; gap:16px; text-decoration:none; color:var(--ink);
+    border:1px solid var(--line); border-radius:999px; padding:11px 22px;
+    background:rgba(255,255,255,.02);
+    transition:border-color .3s, background .3s, transform .3s, box-shadow .3s;
+  }
+  .link-row:hover,.link-row:focus-visible{
+    border-color:color-mix(in srgb, var(--aur-cyan) 46%, var(--line));
+    background:rgba(84,207,224,.06); transform:translateY(-2px); outline:none;
+  }
+  .link-row:focus-visible{box-shadow:0 0 0 2px var(--aur-cyan);}
+  .link-name{font-family:var(--serif-disp); font-size:1.12rem; font-weight:600; color:#f1ead9; letter-spacing:.01em;}
+  .link-desc{font-family:var(--cond); text-transform:uppercase; letter-spacing:.14em; font-size:.7rem; color:var(--ink-faint); margin-left:11px;}
+  .link-ext{font-family:var(--cond); color:var(--aur-cyan); font-size:1.02rem; transition:transform .3s ease;}
+  .link-row:hover .link-ext,.link-row:focus-visible .link-ext{transform:translate(3px,-3px);}
+
+  /* ================= FOOTER ================= */
+  footer{
+    border-top:1px solid var(--line); margin-top:4vh; padding:5vh 0 8vh;
+    color:var(--ink-faint); font-family:var(--cond); letter-spacing:.14em;
+    font-size:.78rem; line-height:2; text-transform:uppercase; text-align:center;
+  }
+  footer b{color:var(--gold-dim); font-weight:500;}
+
+  ::selection{background:rgba(158,115,214,.34); color:#fff;}
+
+  @media (max-width:560px){
+    .shelf{grid-template-columns:1fr;}
+    .vol-title{font-size:1.7rem;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;}
+    html{scroll-behavior:auto;}
+    .vol{opacity:1; transform:none; transition:none;}
+    .vol.in{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-glow"></div>
+    <div class="sigil" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fdfbf2"/>
+            <stop offset="30%" stop-color="#9fe3ec"/>
+            <stop offset="62%" stop-color="#9e73d6"/>
+            <stop offset="100%" stop-color="#2a2350"/>
+          </radialGradient>
+          <linearGradient id="facet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#54cfe0"/>
+            <stop offset="50%" stop-color="#9e73d6"/>
+            <stop offset="100%" stop-color="#e2b860"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="url(#facet)" stroke-width="1.1" opacity=".85">
+          <polygon points="100,12 148,42 148,100 100,130 52,100 52,42"/>
+          <polygon points="100,26 136,48 136,98 100,118 64,98 64,48"/>
+        </g>
+        <ellipse cx="100" cy="74" rx="50" ry="33" fill="none" stroke="url(#facet)" stroke-width="1.4"/>
+        <ellipse cx="100" cy="74" rx="33" ry="33" fill="url(#core)"/>
+        <path d="M100 52 L108 74 L100 96 L92 74 Z" fill="#0a0d16" opacity=".9"/>
+        <circle cx="100" cy="74" r="5" fill="#fdfbf2"/>
+        <g stroke="url(#facet)" stroke-width="1" opacity=".5">
+          <line x1="100" y1="107" x2="100" y2="174"/>
+          <line x1="100" y1="148" x2="76" y2="170"/>
+          <line x1="100" y1="148" x2="124" y2="170"/>
+        </g>
+      </svg>
+    </div>
+    <p class="eyebrow">Guild Wars 2 · 提瑞亞</p>
+    <h1>提瑞亞文庫<span class="sub">The Archives of Tyria</span></h1>
+    <p class="standfirst">關於提瑞亞世界的編年、圖鑑與考據合輯。每一卷各自獨立成篇,在巨龍紀元的餘暉下持續增補。</p>
+    <div class="dispersion"></div>
+    <p class="count" id="count"></p>
+  </header>
+
+  <main class="shelf" id="shelf">
+    <noscript><p class="empty">請啟用 JavaScript 以瀏覽文庫各卷。</p></noscript>
+  </main>
+
+  <section class="related" id="related" hidden>
+    <p class="related-head">相關連結 · Related</p>
+    <div class="links" id="links"></div>
+  </section>
+
+  <footer>
+    提瑞亞文庫 · The Archives of Tyria<br>
+    輯錄自提瑞亞世界之傳承 · <b>1337 AE</b>
+  </footer>
+
+</div>
+
+<script>
+  /* =====================================================================
+     文庫各卷 · 新增一卷時,只需:
+       1. 建立 gw2/<slug>/index.html
+       2. 在下方陣列尾端追加一個物件
+     版面、數量、光譜色帶皆由此資料自動衍生,無需改動其餘程式。
+     欄位:
+       slug   目錄名(相對連結,對應 /gw2/<slug>/)
+       cat    分類標籤(光譜帶上方的小標)
+       title  中文卷名
+       en     英文卷名
+       meta   年代 / 範圍等註記
+       accent 主色(取自該卷自身頁面的主題色,即被折射出的一道色帶)
+       blurb  一兩句簡介
+     ===================================================================== */
+  const ITEMS = [
+    {
+      slug:'tyria-chronicle',
+      cat:'劇情編年',
+      title:'提瑞亞編年史',
+      en:'The Chronicle of Tyria',
+      meta:'巨龍紀元 · 1325 – 1337 AE',
+      accent:'#54CFE0',
+      blurb:'從上古巨龍自沉睡甦醒,到牠們的時代徹底落幕——橫跨十餘年、十二個篇章的完整世界史詩。'
+    },
+    {
+      slug:'legendary-weapons',
+      cat:'裝備圖鑑',
+      title:'傳奇武器圖鑑',
+      en:'Legendary Weapons',
+      meta:'三世代 + 獨立武器',
+      accent:'#C6A867',
+      blurb:'三個編號世代與其後的獨立傳奇武器完整列表,含武器類型、前綴製作與變體外觀說明。'
+    },
+  ];
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  const shelf = document.getElementById('shelf');
+  shelf.innerHTML = ITEMS.map((it, i) => `
+    <a class="vol" href="${esc(it.slug)}/" style="--accent:${esc(it.accent)}; --i:${i}">
+      <div class="vol-cat">${esc(it.cat)}</div>
+      <h2 class="vol-title">${esc(it.title)}<span class="vol-en">${esc(it.en)}</span></h2>
+      <div class="vol-meta">${esc(it.meta)}</div>
+      <p class="vol-blurb">${esc(it.blurb)}</p>
+      <div class="vol-go">閱讀全篇 <span class="arr">&rarr;</span></div>
+    </a>`).join('') ||
+    `<p class="empty">文庫尚無收錄。</p>`;
+
+  const count = document.getElementById('count');
+  if (ITEMS.length) count.innerHTML = `現有 <b>${ITEMS.length}</b> 卷 · 持續增補`;
+
+  /* 相關外部連結 · 追加一筆即新增,結構同 ITEMS。href 為完整外部網址。 */
+  const LINKS = [
+    { name:'GW2 Timer', desc:'世界事件計時', href:'https://gw2timer.howar31.com/' },
+  ];
+  if (LINKS.length) {
+    document.getElementById('links').innerHTML = LINKS.map(l => `
+      <a class="link-row" href="${esc(l.href)}" target="_blank" rel="noopener">
+        <span><b class="link-name">${esc(l.name)}</b><span class="link-desc">${esc(l.desc)}</span></span>
+        <span class="link-ext" aria-hidden="true">&#8599;</span>
+      </a>`).join('');
+    document.getElementById('related').hidden = false;
+  }
+
+  // staggered reveal on load (respects reduced-motion via CSS)
+  const cards = [...shelf.querySelectorAll('.vol')];
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    cards.forEach(c => c.classList.add('in'));
+  } else {
+    requestAnimationFrame(() => requestAnimationFrame(() => cards.forEach(c => c.classList.add('in'))));
+  }
+</script>
+</body>
+</html>
